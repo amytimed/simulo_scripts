@@ -26,7 +26,7 @@ bash -c "cd ~/.config/simulo/scripts/@amy; git pull;"
 ```
 
 ### Windows
-PowerShell Untested
+PowerShell (untested)
 ```powershell
 $ScriptPath = [System.IO.Path]::Combine([Environment]::GetFolderPath("MyDocuments"), "simulo", "scripts", "@amy")
 cd $ScriptPath
