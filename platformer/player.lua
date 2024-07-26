@@ -437,16 +437,9 @@ function on_update()
 
         if Input:pointer_just_released() and weapon_number == 3 then
             if grabbing ~= nil then
-                if prev_line ~= nil then
-                    prev_line:destroy();
-                end;
-
-                ground_body:destroy();
-
-                prev_line = nil;
-                ground_body = nil;
+                grabbing:temp_set_is_static(false);
+                grabbing:temp_set_collides(true);
                 grabbing = nil;
-                spring = nil;
             end;
         end;
 
@@ -455,7 +448,7 @@ function on_update()
                 local player_pos = self:get_position()
                 
                 -- Calculate the end point of the weapon
-                local weapon_length = 2  -- Length of the weapon (same as size.x in the weapon creation)
+                local weapon_length = 1.5  -- Length of the weapon (same as size.x in the weapon creation)
                 local angle = weapon:get_angle()
                 local end_point = player_pos + vec2(
                     weapon_length * math.cos(angle),
@@ -470,20 +463,8 @@ function on_update()
                 if objects_in_circle[1] ~= nil then
                     if not objects_in_circle[1]:temp_get_is_static() then
                         grabbing = objects_in_circle[1];
-                        ground_body = Scene:add_circle({
-                            position = end_point,
-                            radius = 0.025,
-                            is_static = true,
-                            color = 0xffffff,
-                        });
-                        spring = Scene:add_drag_spring({
-                            point = end_point,
-                            object_a = ground_body,
-                            object_b = grabbing,
-                            strength = 200,
-                            damping = 1,
-                        });
-                        ground_body:temp_set_collides(false);
+                        grabbing:temp_set_is_static(true);
+                        grabbing:temp_set_collides(false);
                     end;
                 end;
             end;
@@ -491,26 +472,17 @@ function on_update()
     end;
 
     if grabbing ~= nil then
-        if ground_body ~= nil and grabbing ~= nil then
-            if prev_line ~= nil then
-                prev_line:destroy();
-            end;
+        local player_pos = self:get_position()
+        
+        -- Calculate the end point of the weapon
+        local weapon_length = 1.5 -- Length of the weapon (same as size.x in the weapon creation)
+        local angle = weapon:get_angle()
+        local end_point = player_pos + vec2(
+            weapon_length * math.cos(angle),
+            weapon_length * math.sin(angle)
+        );
 
-            local player_pos = self:get_position()
-            
-            -- Calculate the end point of the weapon
-            local weapon_length = 2 -- Length of the weapon (same as size.x in the weapon creation)
-            local angle = weapon:get_angle()
-            local end_point = player_pos + vec2(
-                weapon_length * math.cos(angle),
-                weapon_length * math.sin(angle)
-            );
-
-            spring:set_target(end_point);
-            ground_body:set_position(end_point);
-
-            prev_line = line(end_point,spring:get_world_point_on_object(),0.05,0xffffff,true);
-        end;
+        grabbing:set_position(end_point);
     end;
 
     if Input:key_just_pressed("C") then
@@ -543,7 +515,7 @@ function on_update()
     if (weapon_number == 3) and (grab_marker == nil) then
         local player_pos = self:get_position()
         -- Calculate the end point of the weapon
-        local weapon_length = 2  -- Length of the weapon (same as size.x in the weapon creation)
+        local weapon_length = 1.5  -- Length of the weapon (same as size.x in the weapon creation)
         local angle = weapon:get_angle()
         local end_point = player_pos + vec2(
             weapon_length * math.cos(angle),
@@ -559,7 +531,7 @@ function on_update()
     elseif weapon_number == 3 then
         local player_pos = self:get_position()
         -- Calculate the end point of the weapon
-        local weapon_length = 2  -- Length of the weapon (same as size.x in the weapon creation)
+        local weapon_length = 1.5  -- Length of the weapon (same as size.x in the weapon creation)
         local angle = weapon:get_angle()
         local end_point = player_pos + vec2(
             weapon_length * math.cos(angle),
