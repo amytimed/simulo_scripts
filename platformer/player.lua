@@ -3,7 +3,7 @@ local jump_force = 5;
 local weapon_offset = vec2(0.3, 0);
 local weapon_cooldown = 0;
 local weapon = nil;
-local grenade_count = 10;
+local grenade_count = 0;
 local weapon_number = 0;
 local grenade_display = nil;
 local grenade_display_offset = vec2(0, 1.4);
@@ -14,6 +14,30 @@ local health_bar_offset = vec2(0, 1);
 local health_bar_width = 0.8;
 local health_bar_height = 0.05;
 local prev_hp_value = 100;
+
+local grabbing = nil;
+local spring = nil;
+local prev_line = nil;
+local ground_body = nil;
+local grab_marker = nil;
+
+function line(line_start,line_end,thickness,color,static)
+    local pos = (line_start+line_end)/2
+    local sx = (line_start-line_end):magnitude()
+    local relative_line_end = line_end-pos
+    local rotation = math.atan(relative_line_end.y/relative_line_end.x)
+    local line = Scene:add_box({
+        position = pos,
+        size = vec2(sx/2, thickness/2),
+        is_static = static,
+        color = color
+    });
+
+    line:temp_set_collides(false);
+    line:set_angle(rotation)
+
+    return line
+end;
 
 local contacts = 0;
 local touching_wall = false;
@@ -162,7 +186,11 @@ function update_grenade_display()
             data.obj:destroy();
         end;
     end;
-    grenade_display = draw_seven_segment_display(self:get_position() + grenade_display_offset, 0.05, 0x50a050, grenade_count);
+    if grenade_count ~= 0 then
+        grenade_display = draw_seven_segment_display(self:get_position() + grenade_display_offset, 0.05, 0x50a050, grenade_count);
+    else
+        grenade_display = nil;
+    end;
 end;
 
 function update_health_bar(value)
@@ -221,6 +249,21 @@ function get_weapon_2(obj)
     weapon_number = 2;
 end;
 
+function get_gravgun(obj)
+    if weapon ~= nil then
+        weapon:temp_set_is_static(false);
+        weapon:temp_set_collides(true);
+        weapon:set_position(weapon:get_position() + vec2(-2, 0));
+        weapon:set_linear_velocity(self:get_linear_velocity());
+    end;
+    weapon = obj;
+    weapon:temp_set_is_static(true);
+    weapon:temp_set_collides(false);
+    weapon_offset = vec2(0.2, 0);
+    weapon_cooldown = 0;
+    weapon_number = 3;
+end;
+
 function on_collision_start(other)
     contacts += 1;
     if other:get_name() == "Wall" then
@@ -231,6 +274,9 @@ function on_collision_start(other)
     end;
     if (other:get_name() == "Weapon 2") and (weapon_number ~= 2) then
         get_weapon_2(other);
+    end;
+    if (other:get_name() == "Gravity Gun") and (weapon_number ~= 3) then
+        get_gravgun(other);
     end;
     if other:get_name() == "health_fruit" then
         local hp_value = tonumber(string.match(self:get_name(), "player_(%d+)"))
@@ -260,14 +306,6 @@ function on_collision_end(other)
         touching_wall = false;
     end;
 end;
-
-local weapon_item = Scene:add_box({
-    position = self:get_position() + vec2(2, -0.4),
-    size = vec2(0.7, 0.1),
-    color = 0xffffff,
-    is_static = false,
-    name = "Weapon 1"
-});
 
 --[[
 local weapon_item = Scene:add_box({
@@ -390,9 +428,88 @@ function on_update()
         weapon:set_position(player_pos + rotated_offset)
 
         if Input:pointer_pressed() then
-            if weapon_cooldown <= 0 then
-                launch_projectile();
+            if weapon_number ~= 3 then
+                if weapon_cooldown <= 0 then
+                    launch_projectile();
+                end;
             end;
+        end;
+
+        if Input:pointer_just_released() and weapon_number == 3 then
+            if grabbing ~= nil then
+                if prev_line ~= nil then
+                    prev_line:destroy();
+                end;
+
+                ground_body:destroy();
+
+                prev_line = nil;
+                ground_body = nil;
+                grabbing = nil;
+                spring = nil;
+            end;
+        end;
+
+        if Input:pointer_just_pressed() and weapon_number == 3 then
+            if grabbing == nil then
+                local player_pos = self:get_position()
+                
+                -- Calculate the end point of the weapon
+                local weapon_length = 2  -- Length of the weapon (same as size.x in the weapon creation)
+                local angle = weapon:get_angle()
+                local end_point = player_pos + vec2(
+                    weapon_length * math.cos(angle),
+                    weapon_length * math.sin(angle)
+                );
+
+                local objects_in_circle = Scene:overlap_circle({
+                    position = end_point,
+                    radius = 0,
+                });
+
+                if objects_in_circle[1] ~= nil then
+                    if not objects_in_circle[1]:temp_get_is_static() then
+                        grabbing = objects_in_circle[1];
+                        ground_body = Scene:add_circle({
+                            position = end_point,
+                            radius = 0.025,
+                            is_static = true,
+                            color = 0xffffff,
+                        });
+                        spring = Scene:add_drag_spring({
+                            point = end_point,
+                            object_a = ground_body,
+                            object_b = grabbing,
+                            strength = 200,
+                            damping = 1,
+                        });
+                        ground_body:temp_set_collides(false);
+                    end;
+                end;
+            end;
+        end;
+    end;
+
+    if grabbing ~= nil then
+        if ground_body ~= nil and grabbing ~= nil then
+            if prev_line ~= nil then
+                prev_line:destroy();
+            end;
+
+            local player_pos = self:get_position()
+            
+            -- Calculate the end point of the weapon
+            local weapon_length = 2 -- Length of the weapon (same as size.x in the weapon creation)
+            local angle = weapon:get_angle()
+            local end_point = player_pos + vec2(
+                weapon_length * math.cos(angle),
+                weapon_length * math.sin(angle)
+            );
+
+            spring:set_target(end_point);
+            ground_body:set_position(end_point);
+
+            prev_line = line(end_point,spring:get_world_point_on_object(),0.05,0xffffff,true);
         end;
     end;
 
@@ -416,6 +533,39 @@ function on_update()
             weapon:set_linear_velocity(self:get_linear_velocity());
         end;
         weapon = nil;
+        weapon_number = 0;
+    end;
+
+    if (weapon_number ~= 3) and (grab_marker ~= nil) then
+        grab_marker:destroy();
+        grab_marker = nil;
+    end;
+    if (weapon_number == 3) and (grab_marker == nil) then
+        local player_pos = self:get_position()
+        -- Calculate the end point of the weapon
+        local weapon_length = 2  -- Length of the weapon (same as size.x in the weapon creation)
+        local angle = weapon:get_angle()
+        local end_point = player_pos + vec2(
+            weapon_length * math.cos(angle),
+            weapon_length * math.sin(angle)
+        );
+        grab_marker = Scene:add_circle({
+            position = end_point,
+            radius = 0.05,
+            is_static = true,
+            color = 0xffffff,
+        });
+        grab_marker:temp_set_collides(false);
+    elseif weapon_number == 3 then
+        local player_pos = self:get_position()
+        -- Calculate the end point of the weapon
+        local weapon_length = 2  -- Length of the weapon (same as size.x in the weapon creation)
+        local angle = weapon:get_angle()
+        local end_point = player_pos + vec2(
+            weapon_length * math.cos(angle),
+            weapon_length * math.sin(angle)
+        );
+        grab_marker:set_position(end_point);
     end;
 end;
 

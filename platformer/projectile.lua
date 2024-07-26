@@ -30,6 +30,11 @@ function on_collision_start(other)
         self:destroy();
         return;
     end;
+
+    if (other:get_name() == "button_inactive") or (other:get_name() == "button_active") then
+        self:destroy();
+        return;
+    end;
     
     if self:get_name() ~= "Enemy Projectile" then
         if starts(other:get_name(), "Enemy_") then
