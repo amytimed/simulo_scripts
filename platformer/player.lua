@@ -5,9 +5,191 @@ local weapon_cooldown = 0;
 local weapon = nil;
 local grenade_count = 10;
 local weapon_number = 0;
+local grenade_display = nil;
+local grenade_display_offset = vec2(0, 1.4);
+
+local health_bar_fg = nil;
+local health_bar_bg = nil;
+local health_bar_offset = vec2(0, 1);
+local health_bar_width = 0.8;
+local health_bar_height = 0.05;
+local prev_hp_value = 100;
 
 local contacts = 0;
 local touching_wall = false;
+
+-- Segment patterns for each digit, true means the segment is on
+local digits = {
+    ['0'] = {
+        {true, true, true},
+        {true, false, true},
+        {true, false, true},
+        {true, false, true},
+        {true, true, true}
+    },
+    ['1'] = {
+        {false, false, true},
+        {false, false, true},
+        {false, false, true},
+        {false, false, true},
+        {false, false, true}
+    },
+    ['2'] = {
+        {true, true, true},
+        {false, false, true},
+        {true, true, true},
+        {true, false, false},
+        {true, true, true}
+    },
+    ['3'] = {
+        {true, true, true},
+        {false, false, true},
+        {true, true, true},
+        {false, false, true},
+        {true, true, true}
+    },
+    ['4'] = {
+        {true, false, true},
+        {true, false, true},
+        {true, true, true},
+        {false, false, true},
+        {false, false, true}
+    },
+    ['5'] = {
+        {true, true, true},
+        {true, false, false},
+        {true, true, true},
+        {false, false, true},
+        {true, true, true}
+    },
+    ['6'] = {
+        {true, true, true},
+        {true, false, false},
+        {true, true, true},
+        {true, false, true},
+        {true, true, true}
+    },
+    ['7'] = {
+        {true, true, true},
+        {false, false, true},
+        {false, false, true},
+        {false, false, true},
+        {false, false, true}
+    },
+    ['8'] = {
+        {true, true, true},
+        {true, false, true},
+        {true, true, true},
+        {true, false, true},
+        {true, true, true}
+    },
+    ['9'] = {
+        {true, true, true},
+        {true, false, true},
+        {true, true, true},
+        {false, false, true},
+        {true, true, true}
+    },
+    ['-'] = {
+        {false, false, false},
+        {false, false, false},
+        {true, true, true},
+        {false, false, false},
+        {false, false, false},
+    }
+}
+
+local function draw_digit(pos, size, color, digit)
+    local digit_pattern = digits[digit]
+    local objects = {}
+
+    for y = 1, #digit_pattern do
+        for x = 1, #digit_pattern[y] do
+            if digit_pattern[y][x] then
+                local offset = vec2((x - 1) * size, -(y - 1) * size);
+                local box = Scene:add_box({
+                    position = pos + offset,
+                    size = vec2(size / 2, size / 2),
+                    color = color,
+                    is_static = true,
+                });
+                box:temp_set_collides(false);
+                table.insert(objects, {
+                    obj = box,
+                    offset = offset,
+                });
+            end;
+        end
+    end
+
+    return objects
+end
+
+local function draw_seven_segment_display(pos, size, color, number)
+    local objects = {}
+    local num_str = tostring(number);
+    pos = pos - vec2((((#num_str / 2) * 4) - 1) * size, -2 * size);
+
+    local final_offset = 0;
+    local first_char = num_str:sub(1, 1);
+    if first_char == "1" then
+        final_offset = -size;
+    end;
+
+    for i = 1, #num_str do
+        local digit = num_str:sub(i, i)
+        local digit_objects = draw_digit(vec2(pos.x + final_offset + (i - 1) * 4 * size, pos.y), size, color, digit)
+        for _, data in ipairs(digit_objects) do
+            table.insert(objects, {
+                obj = data.obj,
+                offset = data.offset + vec2((i - 1) * 4 * size, 0) - vec2((((#num_str / 2) * 4) - 1) * size, -2 * size) + vec2(final_offset, 0)
+            })
+        end
+    end
+
+    return objects
+end;
+
+function move_display(objects, new_pos)
+    for _, data in ipairs(objects) do
+        data.obj:set_position(new_pos + data.offset);
+    end
+end;
+
+function update_grenade_display()
+    if grenade_display ~= nil then
+        for _, data in ipairs(grenade_display) do
+            data.obj:destroy();
+        end;
+    end;
+    grenade_display = draw_seven_segment_display(self:get_position() + grenade_display_offset, 0.05, 0x50a050, grenade_count);
+end;
+
+function update_health_bar(value)
+    if health_bar_fg ~= nil then
+        health_bar_fg:destroy();
+    end;
+    if health_bar_bg ~= nil then
+        health_bar_bg:destroy();
+    end;
+    health_bar_bg = Scene:add_box({
+        position = self:get_position() + health_bar_offset,
+        size = vec2(health_bar_width, health_bar_height),
+        color = 0x000000,
+        is_static = true,
+    });
+    health_bar_bg:temp_set_collides(false);
+    health_bar_fg = Scene:add_box({
+        position = self:get_position() + health_bar_offset + vec2(((value / 100.0) * health_bar_width) - health_bar_width, 0),
+        size = vec2((value / 100.0) * health_bar_width, health_bar_height),
+        color = 0x00ff00,
+        is_static = true,
+    });
+    health_bar_fg:temp_set_collides(false);
+end;
+
+update_health_bar(100);
+update_grenade_display();
 
 function get_weapon_1(obj)
     if weapon ~= nil then
@@ -44,10 +226,10 @@ function on_collision_start(other)
     if other:get_name() == "Wall" then
         touching_wall = true;
     end;
-    if other:get_name() == "Weapon 1" then
+    if (other:get_name() == "Weapon 1") and (weapon_number ~= 1) then
         get_weapon_1(other);
     end;
-    if other:get_name() == "Weapon 2" then
+    if (other:get_name() == "Weapon 2") and (weapon_number ~= 2) then
         get_weapon_2(other);
     end;
     if other:get_name() == "health_fruit" then
@@ -64,6 +246,7 @@ function on_collision_start(other)
     end;
     if other:get_name() == "grenade" then
         grenade_count += 1;
+        update_grenade_display();
         other:destroy();
     end;
 end;
@@ -79,20 +262,21 @@ function on_collision_end(other)
 end;
 
 local weapon_item = Scene:add_box({
-    position = self:get_position() + vec2(10, 1),
+    position = self:get_position() + vec2(2, -0.4),
     size = vec2(0.7, 0.1),
     color = 0xffffff,
     is_static = false,
     name = "Weapon 1"
 });
 
+--[[
 local weapon_item = Scene:add_box({
     position = self:get_position() + vec2(15, 1),
     size = vec2(0.9, 0.2),
     color = 0x50a050,
     is_static = false,
     name = "Weapon 2"
-});
+});]]
 
 function spawn_health(pos)
     local health_fruit = Scene:add_box({
@@ -224,6 +408,15 @@ function on_update()
     if Input:key_just_pressed("G") then
         spawn_grenade(Input:pointer_pos());
     end;
+    if Input:key_just_pressed("Q") then
+        if weapon ~= nil then
+            weapon:temp_set_is_static(false);
+            weapon:temp_set_collides(true);
+            weapon:set_position(weapon:get_position() + vec2(-2, 0));
+            weapon:set_linear_velocity(self:get_linear_velocity());
+        end;
+        weapon = nil;
+    end;
 end;
 
 function rgb_to_color(r, g, b)
@@ -235,6 +428,23 @@ function on_step()
     if hp_value then
         self.color = rgb_to_color(0, math.ceil((hp_value / 100.0) * 255), math.ceil((hp_value / 100.0) * 255));
         if hp_value <= 0 then
+            if grenade_display ~= nil then
+                for _, data in ipairs(grenade_display) do
+                    data.obj:destroy();
+                end;
+            end;
+            if health_bar_fg ~= nil then
+                health_bar_fg:destroy();
+            end;
+            if health_bar_bg ~= nil then
+                health_bar_bg:destroy();
+            end;
+            if weapon ~= nil then
+                weapon:temp_set_is_static(false);
+                weapon:temp_set_collides(true);
+                weapon:set_position(weapon:get_position());
+                weapon:set_linear_velocity(self:get_linear_velocity());
+            end;
             self:destroy();
             return;
         end;
@@ -265,6 +475,18 @@ function on_step()
             weapon_cooldown -= 1;
         end;
     end;
+
+    if grenade_display ~= nil then
+        move_display(grenade_display, self:get_position() + grenade_display_offset);
+    end;
+    if hp_value ~= prev_hp_value then
+        update_health_bar(hp_value);
+    elseif health_bar_bg ~= nil then
+        health_bar_bg:set_position(self:get_position() + health_bar_offset);
+        health_bar_fg:set_position(self:get_position() + health_bar_offset + vec2(((hp_value / 100.0) * health_bar_width) - health_bar_width, 0));
+    end;
+
+    prev_hp_value = hp_value;
 end;
 
 function launch_projectile()
@@ -322,6 +544,7 @@ function launch_grenade()
     end;
 
     grenade_count -= 1;
+    update_grenade_display();
 
     -- Get the player's position and velocity
     local player_pos = self:get_position()

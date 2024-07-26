@@ -31,24 +31,46 @@ function on_collision_start(other)
         return;
     end;
     
-    if starts(other:get_name(), "Enemy_") then
-        -- Extract the HP value from the enemy's name
-        local hp_value = tonumber(string.match(other:get_name(), "Enemy_(%d+)"))
-        if hp_value then
-            -- Reduce HP by 10
-            hp_value = hp_value - 10;
-            if hp_value < 0 then
-                hp_value = 0;
+    if self:get_name() ~= "Enemy Projectile" then
+        if starts(other:get_name(), "Enemy_") then
+            -- Extract the HP value from the enemy's name
+            local hp_value = tonumber(string.match(other:get_name(), "Enemy_(%d+)"))
+            if hp_value then
+                -- Reduce HP by 10
+                hp_value = hp_value - 10;
+                if hp_value < 0 then
+                    hp_value = 0;
+                end;
+                
+                -- Update the enemy's name with the new HP value
+                other:set_name("Enemy_" .. hp_value);
+
+                print("Hit enemy and lowered HP to " .. tostring(hp_value));
             end;
-            
-            -- Update the enemy's name with the new HP value
-            other:set_name("Enemy_" .. hp_value);
 
-            print("Hit enemy and lowered HP to " .. tostring(hp_value));
+            self:destroy();
+            return;
         end;
+    else
+        if starts(other:get_name(), "player_") then
+            -- Extract the HP value from the player's name
+            local hp_value = tonumber(string.match(other:get_name(), "player_(%d+)"))
+            if hp_value then
+                -- Reduce HP by 10
+                hp_value = hp_value - 10;
+                if hp_value < 0 then
+                    hp_value = 0;
+                end;
+                
+                -- Update the player's name with the new HP value
+                other:set_name("player_" .. hp_value);
 
-        self:destroy();
-        return;
+                print("Hit player and lowered HP to " .. tostring(hp_value));
+            end;
+
+            self:destroy();
+            return;
+        end;
     end;
     
     hits += 1;
