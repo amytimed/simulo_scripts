@@ -264,8 +264,18 @@ function get_gravgun(obj)
     weapon_number = 3;
 end;
 
+local touching_grabbing = false;
+
 function on_collision_start(other)
+    if grabbing ~= nil then
+        if grabbing.guid == other.guid then
+            touching_grabbing = true;
+            return;
+        end;
+    end;
+
     contacts += 1;
+
     if other:get_name() == "Wall" then
         touching_wall = true;
     end;
@@ -298,6 +308,16 @@ function on_collision_start(other)
 end;
 
 function on_collision_end(other)
+    if grabbing ~= nil then
+        if grabbing.guid == other.guid then
+            if not touching_grabbing then
+                contacts -= 1;
+            end;
+            touching_grabbing = false;
+            return;
+        end;
+    end;
+
     contacts -= 1;
     if contacts < 0 then
         contacts = 0;
