@@ -8,7 +8,7 @@ function explosion()
     });
     local c = Scene:add_circle({
         position = self:get_position(),
-        radius = 5,
+        radius = 2.5,
         color = 0xffffff,
         is_static = true;
     });

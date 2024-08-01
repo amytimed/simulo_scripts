@@ -12,7 +12,7 @@ box:set_angle(-0.2);
 
 local box2 = Scene:add_box({
     name = "button base",
-    position = self:get_position() + (vec2(21, -18.9) - vec2(20.2, -18.9)),
+    position = self:get_position() + (vec2(21, -18.9) - vec2(20.2, -18.9)) / 2,
     size = vec2(0.2, 1),
     is_static = true,
     color = 0xa0a0a0,
@@ -20,40 +20,40 @@ local box2 = Scene:add_box({
 
 local box3 = Scene:add_box({
     name = "button base 2",
-    position = self:get_position() + (vec2(21, -18.9) - vec2(20.2, -18.9)),
+    position = self:get_position() + (vec2(21, -18.9) - vec2(20.2, -18.9)) / 2,
     size = vec2(0.2, 1),
     is_static = true,
     color = 0xa0a0a0,
 });
 
 local pivot = Scene:add_circle({
-    position = self:get_position() + (vec2(20.6, -18) - vec2(20.2, -18.9)),
-    radius = 0.1,
+    position = self:get_position() + (vec2(20.6, -18) - vec2(20.2, -18.9)) / 2,
+    radius = 0.05,
     is_static = true,
     color = 0xffffff,
 });
 pivot:temp_set_collides(false);
 
 local hinge = Scene:add_hinge_at_world_point({
-    point = self:get_position() + (vec2(20.6, -18) - vec2(20.2, -18.9)),
+    point = self:get_position() + (vec2(20.6, -18) - vec2(20.2, -18.9)) / 2,
     object_a = box,
     object_b = box2
 });
 
 local ground_body = Scene:add_circle({
-    position = self:get_position() + (vec2(20.6, -19.8) - vec2(20.2, -18.9)),
-    radius = 0.1,
+    position = self:get_position() + (vec2(20.6, -19.8) - vec2(20.2, -18.9)) / 2,
+    radius = 0.05,
     is_static = true,
     color = 0xffffff,
 });
 ground_body:temp_set_collides(false);
 
 Scene:add_drag_spring({
-    point = self:get_position() + (vec2(20.6, -19.8) - vec2(20.2, -18.9)),
+    point = self:get_position() + (vec2(20.6, -19.8) - vec2(20.2, -18.9)) / 2,
     object_a = ground_body,
     object_b = box,
-    strength = 50,
-    damping = 0.8,
+    strength = 10,
+    damping = 0.5,
 });
 
 local cooldown = 0;
@@ -79,7 +79,7 @@ function on_step()
             if cooldown <= 0 then
                 cooldown = 2;
                 local gel = Scene:add_box({
-                    position = self:get_position() - vec2(6 + gel_x, -12),
+                    position = self:get_position() - vec2(6 + gel_x, -12) / 2,
                     size = vec2(0.2, 0.2),
                     color = 0x667dbd,
                     is_static = false,

@@ -8,8 +8,8 @@ Scene:set_gravity(vec2(0, 0));
 --Scene.background_color = 0x000000;
 
 local camera = Scene:add_circle({
-    position = vec2(-10, 0),
-    radius = 0.3,
+    position = vec2(-5, 0),
+    radius = 0.15,
     color = 0x63a9ff,
     is_static = false,
 });
@@ -24,7 +24,7 @@ local spheres = {};
 -- Helper function to spawn a box
 function spawn_box(x, y, z, size_x, size_y, size_z)
     local box = Scene:add_box({
-        position = vec2(x, y),
+        position = vec2(x / 2, y / 2),
         size = vec2(size_x, size_y),
         color = 0xa0a0a0,
         is_static = true,
@@ -35,7 +35,7 @@ end
 
 function spawn_bullet(x, y, z)
     local box = Scene:add_box({
-        position = vec2(x, y),
+        position = vec2(x / 2, y / 2),
         size = vec2(0.02, 0.04),
         color = 0xffff00,
         is_static = false,
@@ -181,7 +181,7 @@ function project_point(point)
     -- Transform the point to the camera's local space
     local x = point.x - camera_position.x
     local y = point.y - camera_position.y
-    local z = point.z - 0.5
+    local z = point.z - 0.25
 
     -- Apply yaw (rotation around Z axis)
     x, y = rotate(x, y, yaw)
@@ -210,7 +210,7 @@ function draw_line(line_start,line_end,thickness,color,static)
     local relative_line_end = line_end-pos
     local rotation = math.atan(relative_line_end.y/relative_line_end.x)
     local line = Scene:add_box({
-        position = pos,
+        position = pos / 2,
         size = vec2(sx/2, thickness/2),
         is_static = static,
         color = color
@@ -239,7 +239,7 @@ function draw_circle(center, radius, color)
 end
 
 Scene:add_box({
-    position = vec2(x_pixels / 2, y_pixels / 2),
+    position = vec2(x_pixels / 4, y_pixels / 4),
     size = vec2(x_pixels / 2, y_pixels / 2),
     color = 0x000000,
     is_static = true,
@@ -258,7 +258,7 @@ function render()
 
     if math.max(0, point.y / 2) ~= 0 then
         table.insert(lines, Scene:add_box({
-            position = vec2(x_pixels / 2, math.min(point.y / 2, y_pixels / 2)),
+            position = vec2(x_pixels / 4, math.min(point.y / 4, y_pixels / 4)),
             size = vec2(x_pixels / 2, math.min(math.max(0, point.y / 2), y_pixels / 2)),
             color = 0x222222,
             is_static = true,
@@ -290,9 +290,9 @@ function render()
             -- Parse the size from the box name and double it
             local name = box:get_name()
             local size_x, size_y, size_z, z_offset = name:match("([%d%.]+),([%d%.]+),([%d%.]+),([%d%.]+)")
-            local size = vec2(tonumber(size_x) * 2, tonumber(size_y) * 2)
+            local size = vec2(tonumber(size_x), tonumber(size_y))
 
-            local height = size_z * 2;
+            local height = size_z;
 
             -- Define the corners of the box in 3D space
             local corners = {
@@ -331,7 +331,7 @@ function render()
                 local end_point = projected_corners[edge[2]]
 
                 if start[2] > near and end_point[2] > near then
-                    table.insert(lines, draw_line(start[1], end_point[1], 0.02, box.color, true))
+                    table.insert(lines, draw_line(start[1], end_point[1], 0.01, box.color, true))
                 elseif start[2] > near then
                     -- Intersect line with near clipping plane
                     local t = (near - end_point[2]) / (start[2] - end_point[2])
@@ -339,7 +339,7 @@ function render()
                         end_point[1].x + t * (start[1].x - end_point[1].x),
                         end_point[1].y + t * (start[1].y - end_point[1].y)
                     )
-                    table.insert(lines, draw_line(start[1], intersect_point, 0.02, box.color, true))
+                    table.insert(lines, draw_line(start[1], intersect_point, 0.01, box.color, true))
                 elseif end_point[2] > near then
                     -- Intersect line with near clipping plane
                     local t = (near - start[2]) / (end_point[2] - start[2])
@@ -347,7 +347,7 @@ function render()
                         start[1].x + t * (end_point[1].x - start[1].x),
                         start[1].y + t * (end_point[1].y - start[1].y)
                     )
-                    table.insert(lines, draw_line(intersect_point, end_point[1], 0.02, box.color, true))
+                    table.insert(lines, draw_line(intersect_point, end_point[1], 0.01, box.color, true))
                 end
             end
         else
@@ -447,7 +447,7 @@ function on_update()
         local color = r * 0x10000 + g * 0x100 + b;
 
         local box = Scene:add_box({
-            position = camera:get_position() + transform_vector(vec2(0, 1), camera:get_angle()),
+            position = camera:get_position() + transform_vector(vec2(0, 0.5), camera:get_angle()),
             size = vec2(0.2, 0.2),
             is_static = false,
             color = color,
@@ -458,7 +458,7 @@ function on_update()
     end;
 
     if Input:key_just_pressed("E") then
-        local pos = camera:get_position() + transform_vector(vec2(0, 0.5), camera:get_angle());
+        local pos = camera:get_position() + transform_vector(vec2(0, 0.25), camera:get_angle());
         local box = spawn_bullet(pos.x, pos.y, 0.4);
         box:set_angle(camera:get_angle());
         box:temp_set_group_index(-69);
@@ -468,7 +468,7 @@ function on_update()
 
     if Input:key_just_pressed("V") then
         local box = Scene:add_box({
-            position = camera:get_position() + transform_vector(vec2(0, 1), camera:get_angle()),
+            position = camera:get_position() + transform_vector(vec2(0, 0.5), camera:get_angle()),
             size = vec2(0.18, 0.18),
             is_static = false,
             color = 0xff0000,

@@ -1,21 +1,9 @@
-function reset()
-    local objs = Scene:get_all_objects();
-    for i=1,#objs do
-        objs[i]:destroy();
-    end;
-    local new_ground = Scene:add_box({
-        position = vec2(0, -120),
-        size = vec2(1000, 100),
-        color = 0xb9a1c4,
-        is_static = true,
-    });
-end;
-
-reset();
+Scene:reset();
+Scene:set_gravity(Scene:get_gravity() / 2);
 
 local player = Scene:add_box({
     name = "player_100",
-    position = vec2(2, -19.5),
+    position = vec2(2, -19.5) / 2,
     size = vec2(0.5, 0.5),
     is_static = false,
     color = 0xa0a0ff,
@@ -43,7 +31,7 @@ local button_spawner = Scene:add_component({
 
 Scene:add_circle({
     name = "button_spawner",
-    position = vec2(31.2, -15.9),
+    position = vec2(31.2, -15.9) / 2,
     radius = 0.01,
     is_static = true,
     color = Scene.background_color,
@@ -51,7 +39,7 @@ Scene:add_circle({
 
 Scene:add_box({
     name = "Wall",
-    position = vec2(27, -15.6),
+    position = vec2(27, -15.6) / 2,
     size = vec2(0.2, 2),
     is_static = true,
     color = 0xe5d3b9,
@@ -59,7 +47,7 @@ Scene:add_box({
 
 Scene:add_box({
     name = "Wall",
-    position = vec2(29.7, -13.5),
+    position = vec2(29.7, -13.5) / 2,
     size = vec2(2.9, 0.2),
     is_static = true,
     color = 0xe5d3b9,
@@ -67,7 +55,7 @@ Scene:add_box({
 
 Scene:add_box({
     name = "Wall",
-    position = vec2(32.4, -15.6),
+    position = vec2(32.4, -15.6) / 2,
     size = vec2(0.2, 2),
     is_static = true,
     color = 0xe5d3b9,
@@ -75,7 +63,7 @@ Scene:add_box({
 
 Scene:add_box({
     name = "Wall",
-    position = vec2(37.8, -10),
+    position = vec2(37.8, -10) / 2,
     size = vec2(0.2, 10),
     is_static = true,
     color = 0xe5d3b9,
@@ -83,7 +71,7 @@ Scene:add_box({
 
 Scene:add_box({
     name = "Wall",
-    position = vec2(37.8 + 10, -7),
+    position = vec2(37.8 + 10, -7) / 2,
     size = vec2(0.2, 13),
     is_static = true,
     color = 0xe5d3b9,
@@ -91,7 +79,7 @@ Scene:add_box({
 
 Scene:add_box({
     name = "Wall",
-    position = vec2(37.8 + 5, -0.2),
+    position = vec2(37.8 + 5, -0.2) / 2,
     size = vec2(5, 0.2),
     is_static = true,
     color = 0xe5d3b9,
@@ -99,14 +87,14 @@ Scene:add_box({
 
 Scene:add_box({
     name = "Wall",
-    position = vec2(17.8, 5.8),
+    position = vec2(17.8, 5.8) / 2,
     size = vec2(30, 0.2),
     is_static = true,
     color = 0xe5d3b9,
 });
 
 local weapon_item = Scene:add_box({
-    position = vec2(44, 0.5),
+    position = vec2(44, 0.5) / 2,
     size = vec2(0.7, 0.1),
     color = 0xffffff,
     is_static = false,
@@ -115,7 +103,7 @@ local weapon_item = Scene:add_box({
 
 Scene:add_box({
     name = "Wall",
-    position = vec2(44, 0.2),
+    position = vec2(44, 0.2) / 2,
     size = vec2(0.5, 0.2),
     is_static = true,
     color = 0xe5d3b9,
@@ -123,7 +111,7 @@ Scene:add_box({
 
 Scene:add_box({
     name = "Wall",
-    position = vec2(32.4, -7),
+    position = vec2(32.4, -7) / 2,
     size = vec2(0.2, 7),
     is_static = true,
     color = 0xe5d3b9,
@@ -131,7 +119,7 @@ Scene:add_box({
 
 Scene:add_box({
     name = "Wall",
-    position = vec2(37.8 - 8.2, -0.2),
+    position = vec2(37.8 - 8.2, -0.2) / 2,
     size = vec2(2.8, 0.2),
     is_static = true,
     color = 0xe5d3b9,
@@ -139,7 +127,7 @@ Scene:add_box({
 
 Scene:add_box({
     name = "Wall",
-    position = vec2(27, -7),
+    position = vec2(27, -7) / 2,
     size = vec2(0.2, 7),
     is_static = true,
     color = 0xe5d3b9,
@@ -147,7 +135,7 @@ Scene:add_box({
 
 Scene:add_box({
     name = "Wall",
-    position = vec2(5, -6.85),
+    position = vec2(5, -6.85) / 2,
     size = vec2(0.2, 6.85),
     is_static = true,
     color = 0xe5d3b9,
@@ -155,7 +143,7 @@ Scene:add_box({
 
 Scene:add_box({
     name = "Wall",
-    position = vec2(-0.4, -6.85),
+    position = vec2(-0.4, -6.85) / 2,
     size = vec2(0.2, 6.85),
     is_static = true,
     color = 0xe5d3b9,
@@ -163,7 +151,7 @@ Scene:add_box({
 
 Scene:add_box({
     name = "Wall",
-    position = vec2(2.3, -0.2),
+    position = vec2(2.3, -0.2) / 2,
     size = vec2(2.8, 0.2),
     is_static = true,
     color = 0xe5d3b9,
@@ -171,7 +159,7 @@ Scene:add_box({
 
 Scene:add_box({
     name = "Wall",
-    position = vec2(2.3, -13.5),
+    position = vec2(2.3, -13.5) / 2,
     size = vec2(2.8, 0.2),
     is_static = true,
     color = 0xe5d3b9,
@@ -188,7 +176,7 @@ local gravgun = Scene:add_box({
 
 Scene:add_box({
     name = "Box",
-    position = vec2(3.3, -12.9),
+    position = vec2(3.3, -12.9) / 2,
     size = vec2(0.4, 0.4),
     is_static = false,
     color = 0xa0a0a0,
@@ -196,7 +184,7 @@ Scene:add_box({
 
 Scene:add_box({
     name = "Box",
-    position = vec2(3.5, -12.9 + 0.8),
+    position = vec2(3.5, -12.9 + 0.8) / 2,
     size = vec2(0.4, 0.4),
     is_static = false,
     color = 0xa0a0a0,
@@ -204,7 +192,7 @@ Scene:add_box({
 
 Scene:add_box({
     name = "Box",
-    position = vec2(1.5, -11.3),
+    position = vec2(1.5, -11.3) / 2,
     size = vec2(1, 2),
     is_static = false,
     color = 0xa0a0a0,

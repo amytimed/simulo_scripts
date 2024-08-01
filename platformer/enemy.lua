@@ -1,14 +1,14 @@
-local speed = 3;
-local jump_force = 5;
+local speed = 3 / 2;
+local jump_force = 5 / 2;
 
 local health_bar_fg = nil;
 local health_bar_bg = nil;
-local health_bar_offset = vec2(0, 1);
+local health_bar_offset = vec2(0, 0.5);
 local health_bar_width = 0.8;
 local health_bar_height = 0.05;
 local prev_hp_value = 100;
 
-local weapon_offset = vec2(0.3, 0);
+local weapon_offset = vec2(0.15, 0);
 local weapon_cooldown = 0;
 local weapon = nil;
 local weapon_number = 0;
@@ -21,13 +21,13 @@ function get_weapon_1(obj)
     if weapon ~= nil then
         weapon:temp_set_is_static(false);
         weapon:temp_set_collides(true);
-        weapon:set_position(weapon:get_position() + vec2(-2, 0));
+        weapon:set_position(weapon:get_position() + vec2(-1, 0));
         weapon:set_linear_velocity(self:get_linear_velocity());
     end;
     weapon = obj;
     weapon:temp_set_is_static(true);
     weapon:temp_set_collides(false);
-    weapon_offset = vec2(0.3, 0);
+    weapon_offset = vec2(0.15, 0);
     weapon_cooldown = 0;
     weapon_number = 1;
 end;
@@ -36,13 +36,13 @@ function get_weapon_2(obj)
     if weapon ~= nil then
         weapon:temp_set_is_static(false);
         weapon:temp_set_collides(true);
-        weapon:set_position(weapon:get_position() + vec2(-2, 0));
+        weapon:set_position(weapon:get_position() + vec2(-1, 0));
         weapon:set_linear_velocity(self:get_linear_velocity());
     end;
     weapon = obj;
     weapon:temp_set_is_static(true);
     weapon:temp_set_collides(false);
-    weapon_offset = vec2(0.2, 0);
+    weapon_offset = vec2(0.1, 0);
     weapon_cooldown = 0;
     weapon_number = 2;
 end;
@@ -79,7 +79,7 @@ function update_health_bar(value)
     });
     health_bar_bg:temp_set_collides(false);
     health_bar_fg = Scene:add_box({
-        position = self:get_position() + health_bar_offset + vec2(((value / 100.0) * health_bar_width) - health_bar_width, 0),
+        position = self:get_position() + health_bar_offset + (vec2(((value / 100.0) * health_bar_width) - health_bar_width, 0)) / 2,
         size = vec2((value / 100.0) * health_bar_width, health_bar_height),
         color = 0x00ff00,
         is_static = true,
@@ -308,7 +308,7 @@ function on_step()
         update_health_bar(hp_value);
     elseif health_bar_bg ~= nil then
         health_bar_bg:set_position(self:get_position() + health_bar_offset);
-        health_bar_fg:set_position(self:get_position() + health_bar_offset + vec2(((hp_value / 100.0) * health_bar_width) - health_bar_width, 0));
+        health_bar_fg:set_position(self:get_position() + health_bar_offset + (vec2(((hp_value / 100.0) * health_bar_width) - health_bar_width, 0)) / 2);
     end;
 
     prev_hp_value = hp_value;
@@ -321,7 +321,7 @@ function launch_projectile()
     local self_vel = self:get_linear_velocity()
     
     -- Calculate the end point of the weapon
-    local weapon_length = 1.1  -- Length of the weapon (same as size.x in the weapon creation)
+    local weapon_length = 1.1 / 2 -- Length of the weapon (same as size.x in the weapon creation)
     local angle = weapon:get_angle()
     local end_point = self_pos + vec2(
         weapon_length * math.cos(angle),
@@ -338,7 +338,7 @@ function launch_projectile()
     end;
     local proj = Scene:add_circle({
         position = end_point,
-        radius = 0.1,
+        radius = 0.05,
         color = 0xffa000,
         is_static = false,
         name = name,
@@ -354,7 +354,7 @@ function launch_projectile()
     local velocity = vec2(
         projectile_speed * math.cos(angle),
         projectile_speed * math.sin(angle)
-    )
+    ) / 2;
     
     -- Add our velocity to the projectile's velocity
     velocity = velocity + self_vel

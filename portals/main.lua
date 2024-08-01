@@ -1,17 +1,4 @@
-function reset()
-    local objs = Scene:get_all_objects();
-    for i=1,#objs do
-        objs[i]:destroy();
-    end;
-    local new_ground = Scene:add_box({
-        position = vec2(0, -120),
-        size = vec2(1000, 100),
-        color = 0xb9a1c4,
-        is_static = true,
-    });
-end;
-
-reset();
+Scene:reset();
 
 local hash = Scene:add_component({
     name = "Portal Manager",

@@ -4,13 +4,13 @@ end;
 
 Scene:explode({
     position = self:get_position(),
-    radius = 5,
+    radius = 2.5,
     impulse = 5,
 });
 
 local objs = Scene:overlap_circle({
     position = self:get_position(),
-    radius = 5,
+    radius = 2.5,
 });
 
 for i=1,#objs do
