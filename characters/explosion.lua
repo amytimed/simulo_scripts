@@ -4,13 +4,13 @@ end;
 
 Scene:explode({
     position = self:get_position(),
-    radius = 2.5,
-    impulse = 5,
+    radius = 0.2,
+    impulse = 2,
 });
 
 local objs = Scene:get_objects_in_circle({
     position = self:get_position(),
-    radius = 2.5,
+    radius = 0.2,
 });
 
 for i=1,#objs do

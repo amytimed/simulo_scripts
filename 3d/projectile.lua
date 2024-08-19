@@ -1,3 +1,3 @@
-function on_collision_start(other)
+function on_collision_start(data)
     self:destroy();
 end;

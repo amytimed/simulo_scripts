@@ -119,13 +119,13 @@ local touching_wall = false;
 
 local was_shot = false;
 
-function on_collision_start(other)
+function on_collision_start(data)
     contacts += 1;
-    if other:get_name() == "Wall" then
+    if data.other:get_name() == "Wall" then
         touching_wall = true;
     end;
-    if starts(other:get_name(), "player_") then
-        local hp_value = tonumber(string.match(other:get_name(), "player_(%d+)"))
+    if starts(data.other:get_name(), "player_") then
+        local hp_value = tonumber(string.match(data.other:get_name(), "player_(%d+)"))
         if hp_value then
             -- Reduce HP by 10
             hp_value = hp_value - 10;
@@ -133,12 +133,12 @@ function on_collision_start(other)
                 hp_value = 0;
             end;
             
-            other:set_name("player_" .. hp_value);
+            data.other:set_name("player_" .. hp_value);
 
             print("Hit player and lowered HP to " .. tostring(hp_value));
         end;
     end;
-    if other:get_name() == "health_fruit" then
+    if data.other:get_name() == "health_fruit" then
         local hp_value = tonumber(string.match(self:get_name(), "Enemy_(%d+)"))
         if hp_value then
             hp_value = hp_value + 10;
@@ -148,22 +148,22 @@ function on_collision_start(other)
             
             self:set_name("Enemy_" .. hp_value);
         end;
-        other:destroy();
+        data.other:destroy();
     end;
-    if (other:get_name() == "Weapon 1") and (weapon_number ~= 1) then
-        get_weapon_1(other);
+    if (data.other:get_name() == "Weapon 1") and (weapon_number ~= 1) then
+        get_weapon_1(data.other);
     end;
-    if (other:get_name() == "Weapon 2") and (weapon_number ~= 2) then
-        get_weapon_2(other);
+    if (data.other:get_name() == "Weapon 2") and (weapon_number ~= 2) then
+        get_weapon_2(data.other);
     end;
 end;
 
-function on_collision_end(other)
+function on_collision_end(data)
     contacts -= 1;
     if contacts < 0 then
         contacts = 0;
     end;
-    if other:get_name() == "Wall" then
+    if data.other:get_name() == "Wall" then
         touching_wall = false;
     end;
 end;

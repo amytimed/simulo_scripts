@@ -24,22 +24,22 @@ function explosion()
     c:add_component(hash);
 end;
 
-function on_collision_start(other)
+function on_collision_start(data)
     if self:get_name() == "Rocket" then
         explosion();
         self:destroy();
         return;
     end;
 
-    if (other:get_name() == "button_inactive") or (other:get_name() == "button_active") then
+    if (data.other:get_name() == "button_inactive") or (data.other:get_name() == "button_active") then
         self:destroy();
         return;
     end;
     
     if self:get_name() ~= "Enemy Projectile" then
-        if starts(other:get_name(), "Enemy_") then
+        if starts(data.other:get_name(), "Enemy_") then
             -- Extract the HP value from the enemy's name
-            local hp_value = tonumber(string.match(other:get_name(), "Enemy_(%d+)"))
+            local hp_value = tonumber(string.match(data.other:get_name(), "Enemy_(%d+)"))
             if hp_value then
                 -- Reduce HP by 10
                 hp_value = hp_value - 10;
@@ -48,7 +48,7 @@ function on_collision_start(other)
                 end;
                 
                 -- Update the enemy's name with the new HP value
-                other:set_name("Enemy_" .. hp_value);
+                data.other:set_name("Enemy_" .. hp_value);
 
                 print("Hit enemy and lowered HP to " .. tostring(hp_value));
             end;
@@ -57,9 +57,9 @@ function on_collision_start(other)
             return;
         end;
     else
-        if starts(other:get_name(), "player_") then
+        if starts(data.other:get_name(), "player_") then
             -- Extract the HP value from the player's name
-            local hp_value = tonumber(string.match(other:get_name(), "player_(%d+)"))
+            local hp_value = tonumber(string.match(data.other:get_name(), "player_(%d+)"))
             if hp_value then
                 -- Reduce HP by 10
                 hp_value = hp_value - 10;
@@ -68,7 +68,7 @@ function on_collision_start(other)
                 end;
                 
                 -- Update the player's name with the new HP value
-                other:set_name("player_" .. hp_value);
+                data.other:set_name("player_" .. hp_value);
 
                 print("Hit player and lowered HP to " .. tostring(hp_value));
             end;

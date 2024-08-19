@@ -15,12 +15,6 @@ for y=1,height do
     end;
 end;
 
-function set_pixel(x, y, color)
-    if x < width then
-        pixels[1 + x + (width * y)].color = color;
-    end;
-end;
-
 pieces = {
     { -- O
         {0,0,0,0},
@@ -66,16 +60,38 @@ pieces = {
     }
 };
 
+--[[
 local colors = {
-    [0] = 0x412e4a,
-    [1] = 0xffbc5e,
-    [2] = 0x7b8fff,
-    [3] = 0xff9b59,
-    [4] = 0xff8bb7,
-    [5] = 0xff6a80,
-    [6] = 0xbaf063,
-    [7] = 0xb66cff,
+    [0] = Color:hex(0x412e4a),
+    [1] = Color:hex(0xffbc5e),
+    [2] = Color:hex(0x7b8fff),
+    [3] = Color:hex(0xff9b59),
+    [4] = Color:hex(0xff8bb7),
+    [5] = Color:hex(0xff6a80),
+    [6] = Color:hex(0xbaf063),
+    [7] = Color:hex(0xb66cff),
+};]]
+local colors = {
+    [0] = Color:hex(0x412e4a),
+    [1] = Color:hex(0x281d0f),
+    [2] = Color:hex(0x131728),
+    [3] = Color:hex(0x28180e),
+    [4] = Color:hex(0x28161d),
+    [5] = Color:hex(0x281114),
+    [6] = Color:hex(0x1f2810),
+    [7] = Color:hex(0x1c1128),
 };
+
+function set_pixel(x, y, color)
+    if x < width then
+        pixels[1 + x + (width * y)].color = color;
+        if color ~= colors[0] then
+            pixels[1 + x + (width * y)]:set_name("Light");
+        else
+            pixels[1 + x + (width * y)]:set_name("Pixel");
+        end;
+    end;
+end;
 
 local function draw_piece(piece, x_offset, y_offset)
     for y, row in ipairs(piece) do

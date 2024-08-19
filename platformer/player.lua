@@ -266,9 +266,9 @@ end;
 
 local touching_grabbing = false;
 
-function on_collision_start(other)
+function on_collision_start(data)
     if grabbing ~= nil then
-        if grabbing.guid == other.guid then
+        if grabbing.guid == data.other.guid then
             touching_grabbing = true;
             return;
         end;
@@ -276,19 +276,19 @@ function on_collision_start(other)
 
     contacts += 1;
 
-    if other:get_name() == "Wall" then
+    if data.other:get_name() == "Wall" then
         touching_wall = true;
     end;
-    if (other:get_name() == "Weapon 1") and (weapon_number ~= 1) then
-        get_weapon_1(other);
+    if (data.other:get_name() == "Weapon 1") and (weapon_number ~= 1) then
+        get_weapon_1(data.other);
     end;
-    if (other:get_name() == "Weapon 2") and (weapon_number ~= 2) then
-        get_weapon_2(other);
+    if (data.other:get_name() == "Weapon 2") and (weapon_number ~= 2) then
+        get_weapon_2(data.other);
     end;
-    if (other:get_name() == "Gravity Gun") and (weapon_number ~= 3) then
-        get_gravgun(other);
+    if (data.other:get_name() == "Gravity Gun") and (weapon_number ~= 3) then
+        get_gravgun(data.other);
     end;
-    if other:get_name() == "health_fruit" then
+    if data.other:get_name() == "health_fruit" then
         local hp_value = tonumber(string.match(self:get_name(), "player_(%d+)"))
         if hp_value then
             hp_value = hp_value + 10;
@@ -298,18 +298,18 @@ function on_collision_start(other)
             
             self:set_name("player_" .. hp_value);
         end;
-        other:destroy();
+        data.other:destroy();
     end;
-    if other:get_name() == "grenade" then
+    if data.other:get_name() == "grenade" then
         grenade_count += 1;
         update_grenade_display();
-        other:destroy();
+        data.other:destroy();
     end;
 end;
 
-function on_collision_end(other)
+function on_collision_end(data)
     if grabbing ~= nil then
-        if grabbing.guid == other.guid then
+        if grabbing.guid == data.other.guid then
             if not touching_grabbing then
                 contacts -= 1;
             end;
@@ -322,7 +322,7 @@ function on_collision_end(other)
     if contacts < 0 then
         contacts = 0;
     end;
-    if other:get_name() == "Wall" then
+    if data.other:get_name() == "Wall" then
         touching_wall = false;
     end;
 end;
@@ -409,9 +409,11 @@ function on_update()
         end;
     end;
     if Input:key_pressed("W") and ((contacts > 0) or touching_wall) then
-        current_vel.y = jump_force;
-        update_vel = true;
-        contacts = 0;
+        if current_vel.y < jump_force then
+            current_vel.y = jump_force;
+            update_vel = true;
+            contacts = 0;
+        end;
     end;
 
     if update_vel then
@@ -482,7 +484,7 @@ function on_update()
                     weapon_length * math.sin(angle)
                 );
 
-                local objects_in_circle = Scene:overlap_circle({
+                local objects_in_circle = Scene:get_objects_in_circle({
                     position = end_point,
                     radius = 0,
                 });
