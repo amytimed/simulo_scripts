@@ -41,11 +41,14 @@ function on_update()
         -- Add the projectile at the calculated end point
         local name = "Light";
         local projectile_speed = 50;
+
+        local proj_color = Color:hex(0xe16b6b);
+        proj_color.a = 88;
         
         local proj = Scene:add_box({
             position = end_point,
             size = vec2(0.5, 0.05),
-            color = 0xff7979,
+            color = proj_color,
             is_static = false,
             name = name,
         });
@@ -64,13 +67,10 @@ function on_update()
             projectile_speed * math.sin(angle)
         ) / 2;
         
-        -- Add the player's velocity to the projectile's velocity
-        local final_velocity = velocity + player_vel
-        
         -- Set the projectile's velocity
-        proj:set_linear_velocity(final_velocity)
+        proj:set_linear_velocity(velocity)
 
-        self:apply_force_to_center(-velocity * 0.1);
+        self:apply_force_to_center(-velocity * 5);
     end;
 end;
 

@@ -683,6 +683,7 @@ function launch_projectile()
         projectile_speed = 20;
         weapon_cooldown = 120;
     end;
+    print(tostring(end_point));
     local proj = Scene:add_circle({
         position = end_point,
         radius = 0.05,

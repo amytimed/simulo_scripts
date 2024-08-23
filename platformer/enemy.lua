@@ -238,10 +238,10 @@ function on_step()
         local current_vel = self:get_linear_velocity();
         local update_vel = false;
 
-        if not pcall(get_player_pos) then
+        if player:is_destroyed() then
             print("Had error, fixed");
             find_player();
-            if not pcall(get_player_pos) then
+            if player:is_destroyed() then
                 return;
             end;
         end;

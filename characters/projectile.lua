@@ -2,12 +2,13 @@ local counter = 300;
 
 function explosion()
     local hash = Scene:add_component({
-        code = temp_load_string('./scripts/@amy/platformer/explosion.lua')
+        code = temp_load_string('./scripts/@amy/characters/explosion.lua')
     });
     local c = Scene:add_circle({
         position = self:get_position(),
         radius = 0.2,
         color = 0xffffff,
+        name = "Light",
         is_static = true;
     });
     c:temp_set_collides(false);

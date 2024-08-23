@@ -49,7 +49,7 @@ end;
 
 self:temp_set_collides(false);
 
-local counter = 3;
+local counter = 4;
 
 function on_step()
     counter -= 1;

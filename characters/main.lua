@@ -377,4 +377,4 @@ function climbable_generator(position, height)
     end;
 end;
 
-climbable_generator(vec2(10, -9), 100);
+climbable_generator(vec2(80, -9), 100);

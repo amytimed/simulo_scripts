@@ -5,7 +5,7 @@ end;
 Scene:explode({
     position = self:get_position(),
     radius = 0.2,
-    impulse = 2,
+    impulse = 1,
 });
 
 local objs = Scene:get_objects_in_circle({
@@ -49,7 +49,7 @@ end;
 
 self:temp_set_collides(false);
 
-local counter = 3;
+local counter = 4;
 
 function on_step()
     counter -= 1;

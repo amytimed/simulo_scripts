@@ -18,7 +18,8 @@ function explosion()
         position = self:get_position(),
         radius = 2.5,
         color = 0xffffff,
-        is_static = true;
+        is_static = true,
+        name = "Light"
     });
     c:temp_set_collides(false);
     c:add_component(hash);
