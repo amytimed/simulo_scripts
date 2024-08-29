@@ -173,14 +173,14 @@ function on_step()
     local right = transform_vector(vec2(-1, 0), self:get_angle());
 
     local ray_offset = 0;
-    local ray_gap = 0.01;
+    local ray_gap = 0.005;
 
     local self_pos = self:get_position();
 
-    for i=1,100 do
+    for i=1,150 do
         local realer = step({
             origin = self_pos,
-            direction = forward + (right * ray_offset) + (-right * 50 * ray_gap),
+            direction = forward + (right * ray_offset) + (-right * (150 * 0.5) * ray_gap),
             distance = 50,
             closest_only = true,
         }, 0, 0);
@@ -188,7 +188,7 @@ function on_step()
         if realer == nil then
             local box = Scene:add_box({
                 position = vec2(0 + offset, 0),
-                size = vec2(1, 50),
+                size = vec2(0.5, 50),
                 color = 0x000000,
                 is_static = true,
             });
@@ -197,7 +197,7 @@ function on_step()
         else
             local box1 = Scene:add_box({
                 position = vec2(0 + offset, 0),
-                size = vec2(1, 50),
+                size = vec2(0.5, 50),
                 color = Color:mix(Color:rgba(158, 159, 159, 0), Color:hex(0x9e9f9f), math.min(1, realer.reflect_tint * 0.1)),
                 is_static = true,
             });
@@ -206,7 +206,7 @@ function on_step()
 
             local box = Scene:add_box({
                 position = vec2(0 + offset, 0),
-                size = vec2(1, math.min(50, 50 / realer.distance)),
+                size = vec2(0.5, math.min(50, 50 / realer.distance)),
                 color = realer.color,
                 is_static = true,
             });
@@ -214,7 +214,7 @@ function on_step()
             table.insert(gizmos, box);
         end;
 
-        offset -= 1;
+        offset -= 0.5;
         ray_offset += ray_gap;
     end;
 end;
@@ -226,7 +226,7 @@ function step(cast, distance_so_far, reflect_tint)
 
     local hits = Scene:raycast(cast);
     if #hits == 0 then
-        draw_line(cast.origin, cast.origin + (cast.direction * cast.distance), 0.0125, 0xff6a6a, true);
+        draw_line(cast.origin, cast.origin + (cast.direction:normalize() * cast.distance), 0.0125, 0xff6a6a, true);
         return nil;
     end;
 
@@ -269,8 +269,8 @@ function shade(normal, color, reflect_tint)
     local h, s, v, a = rgba_to_hsva(color)
 
     -- Adjust V by 0.1 and S by -0.1
-    v = math.min(255, math.max(0, v + 20)) -- Clamp v between 0 and 255
-    s = math.min(255, math.max(0, s - 20)) -- Clamp s between 0 and 255
+    v = math.min(255, math.max(0, v - 40)) -- Clamp v between 0 and 255
+    s = math.min(255, math.max(0, s + 40)) -- Clamp s between 0 and 255
 
     print("fac " .. tostring(factor) .. ", s " .. tostring(s) .. ", v " .. tostring(v));
 

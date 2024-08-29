@@ -2,12 +2,6 @@ function starts(String, Start)
     return string.sub(String, 1, string.len(Start)) == Start
 end;
 
-Scene:explode({
-    position = self:get_position(),
-    radius = 0.2,
-    impulse = 1,
-});
-
 local objs = Scene:get_objects_in_circle({
     position = self:get_position(),
     radius = 0.2,
@@ -44,8 +38,18 @@ for i=1,#objs do
                 other:set_name("player_" .. hp_value);
             end;
         end;
+        if other:get_name() ~= "Simulo Planet" then
+            other:detach();
+            other:temp_set_is_static(false);
+        end;
     end;
 end;
+
+Scene:explode({
+    position = self:get_position(),
+    radius = 0.2,
+    impulse = 1,
+});
 
 self:temp_set_collides(false);
 

@@ -1,5 +1,5 @@
-local speed = 5 / 2;
-local jump_force = 5 / 2;
+local speed = 4.1;
+local jump_force = 5.1;
 local weapon_offset = vec2(0.15, 0);
 local weapon_cooldown = 0;
 local weapon = nil;
@@ -10,9 +10,9 @@ local grenade_display_offset = vec2(0, 1.4 / 2);
 
 local health_bar_fg = nil;
 local health_bar_bg = nil;
-local health_bar_offset = vec2(0, 0.5);
-local health_bar_width = 0.8;
-local health_bar_height = 0.05;
+local health_bar_offset = vec2(0, 0.55);
+local health_bar_width = 0.85;
+local health_bar_height = 0.06;
 local prev_hp_value = 100;
 
 local grabbing = nil;
@@ -21,6 +21,33 @@ local prev_line = nil;
 local ground_body = nil;
 local grab_marker = nil;
 
+local debug = false;
+
+local gizmos = {};
+
+function clear_gizmos()
+    for i=1,#gizmos do
+        gizmos[i]:destroy();
+    end;
+    gizmos = {};
+end;
+
+function gizmo_circle(pos, color)
+    local c = Scene:add_circle({
+        position = pos,
+        radius = 0.01,
+        is_static = true,
+        color = color,
+    });
+    c:temp_set_collides(false);
+    table.insert(gizmos, c);
+end;
+
+function gizmo_raycast(tableo, color)
+    local line = line(tableo.origin, tableo.origin + (tableo.direction:normalize() * tableo.distance), 0.01, color, true);
+    table.insert(gizmos, line);
+end;
+
 function line(line_start,line_end,thickness,color,static)
     local pos = (line_start+line_end)/2
     local sx = (line_start-line_end):magnitude()
@@ -28,7 +55,7 @@ function line(line_start,line_end,thickness,color,static)
     local rotation = math.atan(relative_line_end.y/relative_line_end.x)
     local line = Scene:add_box({
         position = pos,
-        size = vec2(sx/2, thickness/2),
+        size = vec2(sx, thickness),
         is_static = static,
         color = color
     });
@@ -203,14 +230,14 @@ function update_health_bar(value)
     health_bar_bg = Scene:add_box({
         position = self:get_position() + health_bar_offset,
         size = vec2(health_bar_width, health_bar_height),
-        color = 0x000000,
+        color = Color:rgba(0,0,0,0),
         is_static = true,
     });
     health_bar_bg:temp_set_collides(false);
     health_bar_fg = Scene:add_box({
         position = self:get_position() + health_bar_offset + (vec2(((value / 100.0) * health_bar_width) - health_bar_width, 0)) / 2,
         size = vec2((value / 100.0) * health_bar_width, health_bar_height),
-        color = 0x00ff00,
+        color = Color:rgba(0,0,0,0),
         is_static = true,
     });
     health_bar_fg:temp_set_collides(false);
@@ -408,11 +435,13 @@ function on_update()
             update_vel = true;
         end;
     end;
-    if Input:key_pressed("W") and ((contacts > 0) or touching_wall) then
+
+    local grounded = ground_check();
+
+    if Input:key_pressed("W") and grounded then
         if current_vel.y < jump_force then
             current_vel.y = jump_force;
             update_vel = true;
-            contacts = 0;
         end;
     end;
 
@@ -596,6 +625,8 @@ function rgb_to_color(r, g, b)
 end
 
 function on_step()
+    clear_gizmos();
+
     local hp_value = tonumber(string.match(self:get_name(), "player_(%d+)"))
     if hp_value then
         self.color = rgb_to_color(0, math.ceil((hp_value / 100.0) * 255), math.ceil((hp_value / 100.0) * 255));
@@ -659,7 +690,72 @@ function on_step()
     end;
 
     prev_hp_value = hp_value;
+
+    if debug then
+        --[[for _, offset in ipairs(ground_check_points) do
+            gizmo_circle(self:get_position() - offset, 0xff0000);
+        end;]]
+        gizmo_raycast({
+            origin = self:get_position() + vec2((-5.5 * (1 / 12)) - 0.01, -4 * (1 / 12)),
+            direction = vec2(0, -1),
+            distance = (2 / 12) + 0.01,
+            closest_only = false,
+        }, 0xff0000);
+        gizmo_raycast({
+            origin = self:get_position() + vec2((5.5 * (1 / 12)) + 0.01, -4 * (1 / 12)),
+            direction = vec2(0, -1),
+            distance = (2 / 12) + 0.01,
+            closest_only = false,
+        }, 0xff0000);
+        gizmo_raycast({
+            origin = self:get_position() + vec2((-5.5 * (1 / 12)) - 0.01, (-4 * (1 / 12)) - (2 / 12) - 0.01),
+            direction = vec2(1, 0),
+            distance = (11 * (1 / 12)) + 0.02,
+            closest_only = false,
+        }, 0xff0000);
+        gizmo_circle(self:get_position() + vec2((-5.5 * (1 / 12)) - 0.01, -4 * (1 / 12)), 0xff0000);
+        gizmo_circle(self:get_position() + vec2((5.5 * (1 / 12)) + 0.01, -4 * (1 / 12)), 0xff0000);
+    end;
 end;
+
+function ground_check()
+    local hits1 = Scene:raycast({
+        origin = self:get_position() + vec2((-5.5 * (1 / 12)) - 0.01, -4 * (1 / 12)),
+        direction = vec2(0, -1),
+        distance = (2 / 12) + 0.01,
+        closest_only = false,
+    });
+    if #hits1 > 0 then return true; end;
+
+    local hits2 = Scene:raycast({
+        origin = self:get_position() + vec2((5.5 * (1 / 12)) + 0.01, -4 * (1 / 12)),
+        direction = vec2(0, -1),
+        distance = (2 / 12) + 0.01,
+        closest_only = false,
+    });
+    if #hits2 > 0 then return true; end;
+
+    local hits3 = Scene:raycast({
+        origin = self:get_position() + vec2((-5.5 * (1 / 12)) - 0.01, (-4 * (1 / 12)) - (2 / 12) - 0.01),
+        direction = vec2(1, 0),
+        distance = (11 * (1 / 12)) + 0.02,
+        closest_only = false,
+    });
+    if #hits3 > 0 then return true; end;
+
+    local circle1 = Scene:get_objects_in_circle({
+        position = self:get_position() + vec2((-5.5 * (1 / 12)) - 0.01, -4 * (1 / 12)),
+        radius = 0,
+    });
+    if #circle1 > 0 then return true; end;
+    local circle2 = Scene:get_objects_in_circle({
+        position = self:get_position() + vec2((5.5 * (1 / 12)) + 0.01, -4 * (1 / 12)),
+        radius = 0,
+    });
+    if #circle2 > 0 then return true; end;
+
+    return false;
+end
 
 function launch_projectile()
     weapon_cooldown = 4;

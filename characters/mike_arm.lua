@@ -5,6 +5,11 @@ local sticky_hinges = {};
 
 local sticky = false;
 
+local cooldown = 10;
+local current_cooldown = 0;
+
+local prev_angle = self:get_angle();
+
 local proj_hash = Scene:add_component({
     name = "Projectile",
     id = "@amy/characters/projectile",
@@ -26,28 +31,29 @@ function on_update()
         end;
     end;
 
-    if Input:key_just_pressed("Q") then
+    if Input:key_pressed("Q") and (current_cooldown <= 0) then
+        current_cooldown = cooldown;
+
         local player_pos = self:get_position()
         local player_vel = self:get_linear_velocity()
         
         -- Calculate the end point of the weapon
         local weapon_length = 0.5; -- Length of the weapon (same as size.x in the weapon creation)
-        local angle = self:get_angle()
+        local angle = (self:get_angle() + prev_angle) * 0.5;
         local end_point = player_pos + vec2(
             weapon_length * math.cos(angle),
             weapon_length * math.sin(angle)
         );
 
         -- Add the projectile at the calculated end point
-        local name = "Light";
+        local name = "Projectile";
         local projectile_speed = 50;
 
-        local proj_color = Color:hex(0xe16b6b);
-        proj_color.a = 88;
+        local proj_color = Color:hex(0xffffff);
         
-        local proj = Scene:add_box({
+        local proj = Scene:add_circle({
             position = end_point,
-            size = vec2(0.5, 0.05),
+            radius = 0.05,
             color = proj_color,
             is_static = false,
             name = name,
@@ -88,4 +94,15 @@ function on_collision_start(data)
             }));
         end;
     end;
+end;
+
+function on_step()
+    if current_cooldown > 0 then
+        current_cooldown -= 1;
+        if current_cooldown < 0 then
+            current_cooldown = 0;
+        end;
+    end;
+
+    prev_angle = self:get_angle();
 end;
