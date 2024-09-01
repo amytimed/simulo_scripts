@@ -529,6 +529,6 @@ local hash = Scene:add_component({
 
 nuke:add_component(hash);]]
 
-local spawn_pylon = require('./scripts/@amy/pylon/pylon.lua');
+local spawn_pylon = require('./scripts/@amy/pylon/spawn.lua');
 
 spawn_pylon(vec2(-2, 0));

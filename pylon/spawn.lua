@@ -88,6 +88,7 @@ local function spawn_pylon(spawn_offset)
         color = Color:hex(0x403c42),
         is_static = false,
         position = vec2(0, -10 + (5.8 * 0.0625)) + spawn_offset,
+        name = "pylon_weapon_1"
     });
 
     local weapon_2 = Scene:add_polygon({
@@ -100,6 +101,7 @@ local function spawn_pylon(spawn_offset)
         color = Color:hex(0x1b191c),
         is_static = false,
         position = vec2(0, -10 + (5.8 * 0.0625)) + spawn_offset,
+        name = "pylon_weapon_2"
     });
 
     local weapon_3 = Scene:add_circle({
@@ -107,6 +109,7 @@ local function spawn_pylon(spawn_offset)
         radius = 1.6 * 0.0625 * 0.5,
         color = Color:hex(0x1b191c),
         is_static = false,
+        name = "pylon_weapon_3"
     });
 
     weapon_2:bolt_to(weapon_1);
@@ -118,7 +121,7 @@ local function spawn_pylon(spawn_offset)
         object_b = pylon_main,
         motor_enabled = true,
         motor_speed = 0, -- radians per second
-        max_motor_torque = 1, -- maximum torque for the motor, in newton-meters
+        max_motor_torque = 1.25, -- maximum torque for the motor, in newton-meters
     });
 
     local hash = Scene:add_component({
@@ -131,6 +134,15 @@ local function spawn_pylon(spawn_offset)
     weapon_2:add_component(hash);
 
     weapon_1:set_angle(-0.38945937156677246);
+
+    local hash = Scene:add_component({
+        name = "Pylon",
+        id = "@amy/pylon/controller",
+        version = "0.1.0",
+        code = temp_load_string('./scripts/@amy/pylon/controller.lua')
+    });
+
+    pylon_main:add_component(hash);
 end;
 
 return spawn_pylon;

@@ -4,11 +4,32 @@ local target_beam_length = 2;
 local beam_length = 0;
 local beam_speed = 0.2;
 
+local point_at_mouse = false;
+
 local enabled = false;
 
 function on_update()
     if Input:key_just_pressed("E") then
         enabled = not enabled;
+    end;
+    if Input:key_just_pressed("X") then
+        point_at_mouse = not point_at_mouse;
+        local objs = Scene:get_all_objects();
+        for i=1,#objs do
+            if objs[i]:get_name() == "pylon_weapon_1" then
+                objs[i]:temp_set_collides(not point_at_mouse);
+            end;
+        end;
+        self:temp_set_collides(not point_at_mouse);
+    end;
+
+    if point_at_mouse then
+        local self_pos = self:get_position();
+
+        local world_position = Input:pointer_pos();
+        local angle = math.atan2(world_position.y - self_pos.y, world_position.x - self_pos.x);
+        
+        self:set_angle(angle);
     end;
 end;
 
@@ -63,6 +84,15 @@ end;
 
 function on_step()
     clear_gizmos();
+
+    if point_at_mouse then
+        local self_pos = self:get_position();
+
+        local world_position = Input:pointer_pos();
+        local angle = math.atan2(world_position.y - self_pos.y, world_position.x - self_pos.x);
+        
+        self:set_angle(angle);
+    end;
 
     if enabled then
         beam_length += beam_speed;

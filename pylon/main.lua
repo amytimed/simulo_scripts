@@ -31,6 +31,6 @@ Scene:add_box({
 
 ]]
 
-local spawn_pylon = require('./scripts/@amy/pylon/pylon.lua');
+local spawn_pylon = require('./scripts/@amy/pylon/spawn.lua');
 
 spawn_pylon(vec2(0, 0));
