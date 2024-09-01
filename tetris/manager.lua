@@ -60,7 +60,7 @@ pieces = {
     }
 };
 
---[[
+
 local colors = {
     [0] = Color:hex(0x412e4a),
     [1] = Color:hex(0xffbc5e),
@@ -70,26 +70,11 @@ local colors = {
     [5] = Color:hex(0xff6a80),
     [6] = Color:hex(0xbaf063),
     [7] = Color:hex(0xb66cff),
-};]]
-local colors = {
-    [0] = Color:hex(0x412e4a),
-    [1] = Color:hex(0x281d0f),
-    [2] = Color:hex(0x131728),
-    [3] = Color:hex(0x28180e),
-    [4] = Color:hex(0x28161d),
-    [5] = Color:hex(0x281114),
-    [6] = Color:hex(0x1f2810),
-    [7] = Color:hex(0x1c1128),
 };
 
 function set_pixel(x, y, color)
     if x < width then
         pixels[1 + x + (width * y)].color = color;
-        if color ~= colors[0] then
-            pixels[1 + x + (width * y)]:set_name("Light");
-        else
-            pixels[1 + x + (width * y)]:set_name("Pixel");
-        end;
     end;
 end;
 

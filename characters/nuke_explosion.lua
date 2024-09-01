@@ -4,7 +4,7 @@ end;
 
 local objs = Scene:get_objects_in_circle({
     position = self:get_position(),
-    radius = 0.2,
+    radius = 500,
 });
 
 for i=1,#objs do
@@ -47,13 +47,13 @@ end;
 
 Scene:explode({
     position = self:get_position(),
-    radius = 0.2,
-    impulse = 1,
+    radius = 500,
+    impulse = -10,
 });
 
 self:temp_set_collides(false);
 
-local counter = 4;
+local counter = 10;
 
 function on_step()
     counter -= 1;

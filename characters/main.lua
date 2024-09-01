@@ -136,7 +136,7 @@ function spawn_mike(position)
     });
 end;
 
-spawn_mike(vec2(0, -5));
+spawn_mike(vec2(0, -9.7));
 
 function generate_polygon_points(n, size)
     local points = {}
@@ -292,7 +292,7 @@ function spawn_moderizer(position)
     print("did it for " .. tostring(#hexagons) .. " hexagons")
 end;
 
-spawn_moderizer(vec2(2, -5));
+spawn_moderizer(vec2(4, -9.7));
 
 function spawn_emperor(position)
     Scene:add_simulon({
@@ -340,7 +340,7 @@ function spawn_emperor(position)
     print("did it for " .. tostring(#hexagons) .. " hexagons");
 end;
 
-spawn_emperor(vec2(4, -5));
+spawn_emperor(vec2(6, -10.9));
 
 function climbable_generator(position, height)
     local block_height = 0.5;
@@ -379,60 +379,15 @@ end;
 
 climbable_generator(vec2(80, -9), 100);
 
-local image = temp_load_image('./scripts/@amy/characters/cone.png');
-
-local pixel_size = 1 / 12;
-local half_width = (image.width / 2) * pixel_size;
-local half_height = (image.height / 2) * pixel_size;
-
-local base = Scene:add_circle({
-    position = vec2(0, 0),
-    radius = pixel_size,
-    is_static = false,
-    color = Color:rgba(0, 0, 0, 0),
-});
-
-base:set_angle_locked(true);
-
-for x=0,(image.width - 1) do
-    for y=0,(image.height - 1) do
-        local pixel = image:get_pixel(vec2(x, y));
-
-        if pixel.a > 0 then
-            local box = Scene:add_box({
-                position = vec2((x * pixel_size) - half_width + (pixel_size * 0.5), -(y * pixel_size) + half_height - (pixel_size * 0.5)),
-                size = vec2(pixel_size, pixel_size),
-                is_static = false,
-                color = Color:rgba(pixel.r, pixel.g, pixel.b, pixel.a),
-                name = "Pixel"
-            });
-            
-            box:set_restitution(0);
-
-            box:bolt_to(base);
-        end;
-    end;
-end;
-
-base:set_name("player_100");
-
-local hash = Scene:add_component({
-    name = "Pylon",
-    id = "@amy/characters/pylon",
-    version = "0.2.0",
-    code = temp_load_string('./scripts/@amy/characters/pylon.lua')
-});
-
-base:add_component(hash);
-
+--[[
 local weapon_item = Scene:add_box({
     position = vec2(44, 0.5) / 2,
     size = vec2(0.7, 0.1),
     color = 0xffffff,
     is_static = false,
     name = "Weapon 1"
-});
-
+});]]
+--[[
 local detacher = Scene:add_polygon({
     points = {
         [1] = vec2(-2, 0),
@@ -446,7 +401,7 @@ local detacher = Scene:add_polygon({
 local hash = Scene:add_component({
     name = "detacher",
     id = "@amy/characters/detacher",
-    version = "0.2.0",
+    version = "0.1.0",
     code = temp_load_string('./scripts/@amy/characters/detacher.lua')
 });
 
@@ -465,11 +420,11 @@ local attacher = Scene:add_polygon({
 local hash = Scene:add_component({
     name = "attacher",
     id = "@amy/characters/attacher",
-    version = "0.2.0",
+    version = "0.1.0",
     code = temp_load_string('./scripts/@amy/characters/attacher.lua')
 });
 
-attacher:add_component(hash);
+attacher:add_component(hash);]]
 
 -- hiiii
 
@@ -504,7 +459,7 @@ for x=0,(image.width - 1) do
         end;
     end;
 end;]]
-
+--[[
 local cannibal = Scene:add_simulon({
     color = 0x8e8371,
     size = 1,
@@ -524,24 +479,26 @@ end;
 local hash = Scene:add_component({
     name = "cannibal",
     id = "@amy/characters/cannibal",
-    version = "0.2.0",
+    version = "0.1.0",
     code = temp_load_string('./scripts/@amy/characters/cannibal.lua')
 });
 
-head:add_component(hash);
+head:add_component(hash);]]
 
 local hammer_1 = Scene:add_box({
     position = vec2(30, 0),
     size = vec2(3, 0.15),
     is_static = false,
-    color = 0x98684f
+    color = 0x98684f,
+    name = "hammer_1"
 });
 
 local hammer_2 = Scene:add_box({
     position = vec2(31.5, 0),
     size = vec2(0.5, 1),
     is_static = false,
-    color = 0xb6abbd
+    color = 0xb6abbd,
+    name = "hammer_2"
 });
 
 hammer_2:bolt_to(hammer_1);
@@ -549,8 +506,29 @@ hammer_2:bolt_to(hammer_1);
 local hash = Scene:add_component({
     name = "hammer",
     id = "@amy/characters/hammer",
-    version = "0.2.0",
+    version = "0.1.0",
     code = temp_load_string('./scripts/@amy/characters/hammer.lua')
 });
 
 hammer_2:add_component(hash);
+
+--[[
+local nuke = Scene:add_box({
+    color = 0x565d44,
+    position = vec2(40, 0),
+    size = vec2(2, 0.9),
+    is_static = false,
+});
+
+local hash = Scene:add_component({
+    name = "nuke",
+    id = "@amy/characters/nuke",
+    version = "0.1.0",
+    code = temp_load_string('./scripts/@amy/characters/nuke.lua')
+});
+
+nuke:add_component(hash);]]
+
+local spawn_pylon = require('./scripts/@amy/pylon/pylon.lua');
+
+spawn_pylon(vec2(-2, 0));
