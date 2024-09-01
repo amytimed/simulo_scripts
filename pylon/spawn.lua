@@ -1,4 +1,4 @@
-local function spawn_pylon(spawn_offset)
+local function spawn_pylon(spawn_offset, light)
     local pylon_main = Scene:add_polygon({
         points = {
             [1] = vec2(-1.4 * 0.0625, 1),
@@ -9,6 +9,7 @@ local function spawn_pylon(spawn_offset)
         color = Color:hex(0x874e32),
         is_static = false,
         position = vec2(0, -10) + spawn_offset,
+        name = "Pylon"
     });
 
     local pylon_base = Scene:add_box({
@@ -16,7 +17,11 @@ local function spawn_pylon(spawn_offset)
         size = vec2(1 - 0.0625, 2.6 * 0.0625),
         color = Color:hex(0x4e2c2f),
         is_static = false,
+        name = "Pylon Base",
     });
+
+    pylon_base:set_friction(1);
+    pylon_base:set_restitution(0);
 
     pylon_base:bolt_to(pylon_main);
 
@@ -27,7 +32,7 @@ local function spawn_pylon(spawn_offset)
             [3] = vec2(4.6 * 0.0625, -2.1 * 0.0625),
             [4] = vec2(-4.6 * 0.0625, -2.1 * 0.0625),
         },
-        color = Color:hex(0),
+        color = Color:hex(0x0f0c11),
         is_static = false,
         position = vec2(0, -10 + (10 * 0.0625)) + spawn_offset,
     });
@@ -56,11 +61,52 @@ local function spawn_pylon(spawn_offset)
         position = vec2(0, -10 + (10 * 0.0625)) + spawn_offset,
     });
 
+    local eye_color = Color:hex(0xff9a52);
+    eye_color.a = 70;
+
     local left_eye = Scene:add_circle({
         position = vec2(-1.8 * 0.0625, -10 + (10 * 0.0625)) + spawn_offset,
         radius = 1.6 * 0.0625 * 0.5,
-        color = Color:hex(0xff9a52),
+        color = eye_color,
         is_static = false,
+    });
+
+    Scene:add_attachment({
+        name = "Point Light",
+        component = {
+            name = "Point Light",
+            code = temp_load_string('./scripts/core/hinge.lua'),
+        },
+        parent = left_eye,
+        local_position = vec2(0, 0),
+        local_angle = 0,
+        image = "hinge.png",
+        size = 1,
+        color = Color:rgba(0,0,0,0),
+        light = {
+            color = Color:hex(0xff9a52),
+            intensity = 10,
+            radius = 0.15,
+        }
+    });
+
+    Scene:add_attachment({
+        name = "Point Light",
+        component = {
+            name = "Point Light",
+            code = temp_load_string('./scripts/core/hinge.lua'),
+        },
+        parent = left_eye,
+        local_position = vec2(0, 0),
+        local_angle = 0,
+        image = "hinge.png",
+        size = 1,
+        color = Color:rgba(0,0,0,0),
+        light = {
+            color = Color:hex(0xff9a52),
+            intensity = 0.01,
+            radius = 1.5,
+        }
     });
 
     left_eye:bolt_to(visor);
@@ -68,9 +114,48 @@ local function spawn_pylon(spawn_offset)
     local right_eye = Scene:add_circle({
         position = vec2(1.8 * 0.0625, -10 + (10 * 0.0625)) + spawn_offset,
         radius = 1.6 * 0.0625 * 0.5,
-        color = Color:hex(0xff9a52),
+        color = eye_color,
         is_static = false,
     });
+
+    Scene:add_attachment({
+        name = "Point Light",
+        component = {
+            name = "Point Light",
+            code = temp_load_string('./scripts/core/hinge.lua'),
+        },
+        parent = right_eye,
+        local_position = vec2(0, 0),
+        local_angle = 0,
+        image = "hinge.png",
+        size = 1,
+        color = Color:rgba(0,0,0,0),
+        light = {
+            color = Color:hex(0xff9a52),
+            intensity = 10,
+            radius = 0.15,
+        }
+    });
+
+    Scene:add_attachment({
+        name = "Point Light",
+        component = {
+            name = "Point Light",
+            code = temp_load_string('./scripts/core/hinge.lua'),
+        },
+        parent = right_eye,
+        local_position = vec2(0, 0),
+        local_angle = 0,
+        image = "hinge.png",
+        size = 1,
+        color = Color:rgba(0,0,0,0),
+        light = {
+            color = Color:hex(0xff9a52),
+            intensity = 0.01,
+            radius = 1.5,
+        }
+    });
+
 
     right_eye:bolt_to(visor);
 
@@ -143,6 +228,27 @@ local function spawn_pylon(spawn_offset)
     });
 
     pylon_main:add_component(hash);
+
+    if light then 
+        Scene:add_attachment({
+            name = "Point Light",
+            component = {
+                name = "Point Light",
+                code = temp_load_string('./scripts/core/hinge.lua'),
+            },
+            parent = pylon_main,
+            local_position = vec2(0, 0),
+            local_angle = 0,
+            image = "hinge.png",
+            size = 1,
+            color = Color:rgba(0,0,0,0),
+            light = {
+                color = 0xffffff,
+                intensity = 0.1,
+                radius = 5,
+            }
+        });
+    end;
 end;
 
 return spawn_pylon;
