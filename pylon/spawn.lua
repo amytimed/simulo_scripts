@@ -69,6 +69,7 @@ local function spawn_pylon(spawn_offset, light)
         radius = 1.6 * 0.0625 * 0.5,
         color = eye_color,
         is_static = false,
+        name = "Pylon Left Eye",
     });
 
     Scene:add_attachment({
@@ -116,6 +117,7 @@ local function spawn_pylon(spawn_offset, light)
         radius = 1.6 * 0.0625 * 0.5,
         color = eye_color,
         is_static = false,
+        name = "Pylon Right Eye",
     });
 
     Scene:add_attachment({

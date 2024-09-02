@@ -107,7 +107,7 @@ end
 local x_move = 0;
 local y_move = 0;
 local z_spin = 0;
-local move_speed = 1;
+local move_speed = 2;
 local spin_speed = 1;
 
 function on_update()
@@ -183,20 +183,20 @@ function on_step()
             direction = forward + (right * ray_offset) + (-right * (150 * 0.5) * ray_gap),
             distance = 50,
             closest_only = true,
-        }, 0, 0);
+        }, 0, 0, (i == 1) or (i == 150));
 
         if realer == nil then
-            local box = Scene:add_box({
-                position = vec2(0 + offset, 0),
+            --[[local box = Scene:add_box({
+                position = vec2(0 + offset + (0.25 * 150) - 0.25, 0),
                 size = vec2(0.5, 50),
                 color = 0x000000,
                 is_static = true,
             });
             box:temp_set_collides(false);
-            table.insert(gizmos, box);
+            table.insert(gizmos, box);]]
         else
             local box1 = Scene:add_box({
-                position = vec2(0 + offset, 0),
+                position = vec2(0 + offset + (0.25 * 150) - 0.25, 0, 0),
                 size = vec2(0.5, 50),
                 color = Color:mix(Color:rgba(158, 159, 159, 0), Color:hex(0x9e9f9f), math.min(1, realer.reflect_tint * 0.1)),
                 is_static = true,
@@ -205,7 +205,7 @@ function on_step()
             table.insert(gizmos, box1);
 
             local box = Scene:add_box({
-                position = vec2(0 + offset, 0),
+                position = vec2(0 + offset + (0.25 * 150) - 0.25, 0, 0),
                 size = vec2(0.5, math.min(50, 50 / realer.distance)),
                 color = realer.color,
                 is_static = true,
@@ -219,21 +219,21 @@ function on_step()
     end;
 end;
 
-function step(cast, distance_so_far, reflect_tint)
+function step(cast, distance_so_far, reflect_tint, should_draw)
     if cast.distance <= 0 then
         return;
     end;
 
     local hits = Scene:raycast(cast);
     if #hits == 0 then
-        draw_line(cast.origin, cast.origin + (cast.direction:normalize() * cast.distance), 0.0125, 0xff6a6a, true);
+        if should_draw then draw_line(cast.origin, cast.origin + (cast.direction:normalize() * cast.distance), 0.0125, 0xff6a6a, true); end;
         return nil;
     end;
 
     local distance = (hits[1].point - cast.origin):magnitude();
 
     --gizmo_raycast(cast, 0xff0000);
-    draw_line(cast.origin, hits[1].point, 0.0125, 0xff6a6a, true);
+    if should_draw then draw_line(cast.origin, hits[1].point, 0.0125, 0xff6a6a, true); end;
 
     if hits[1].object:get_name() ~= "mirror" then
         return {
@@ -255,7 +255,7 @@ function step(cast, distance_so_far, reflect_tint)
         direction = reflected,
         distance = cast.distance - distance,
         closest_only = true,
-    }, distance_so_far + distance, reflect_tint + 1);
+    }, distance_so_far + distance, reflect_tint + 1, should_draw);
 end;
 
 function shade(normal, color, reflect_tint)
@@ -271,8 +271,6 @@ function shade(normal, color, reflect_tint)
     -- Adjust V by 0.1 and S by -0.1
     v = math.min(255, math.max(0, v - 40)) -- Clamp v between 0 and 255
     s = math.min(255, math.max(0, s + 40)) -- Clamp s between 0 and 255
-
-    print("fac " .. tostring(factor) .. ", s " .. tostring(s) .. ", v " .. tostring(v));
 
     -- Step 4: Mix the original color with the adjusted HSVA color
     local adjusted_color = Color:hsva(h, s, v, a)

@@ -2,9 +2,9 @@ Scene:reset();
 
 local hash = Scene:add_component({
     name = "3D Manager",
-    id = "@amy/3d/manager",
+    id = "@amy/wireframe3d/manager",
     version = "0.2.0",
-    code = temp_load_string('./scripts/@amy/3d/manager.lua')
+    code = temp_load_string('./scripts/@amy/wireframe3d/manager.lua')
 });
 
 local manager = Scene:add_box({

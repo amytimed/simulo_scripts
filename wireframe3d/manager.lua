@@ -372,9 +372,9 @@ end
 
 local proj_hash = Scene:add_component({
     name = "Projectile",
-    id = "@amy/3d/projectile",
+    id = "@amy/wireframe3d/projectile",
     version = "0.1.0",
-    code = temp_load_string('./scripts/@amy/3d/projectile.lua')
+    code = temp_load_string('./scripts/@amy/wireframe3d/projectile.lua')
 });
 
 function on_update()

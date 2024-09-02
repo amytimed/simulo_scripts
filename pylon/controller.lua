@@ -5,6 +5,98 @@ local jump_force = 5.1;
 
 local debug = false;
 
+local camera_pos = vec2(0, 0);
+local camera_zoom = 0.02;
+
+function screen_to_world(pos)
+    return (pos / 216) + camera_pos;
+end;
+
+local health_bar_fg = nil;
+local health_bar_bg = nil;
+local health_bar_width = 0.8 * 3;
+local health_bar_height = 0.05 * 2;
+local prev_hp_value = 100;
+
+local left_eye = nil;
+local right_eye = nil;
+local objs = Scene:get_all_objects();
+for i=1,#objs do
+    if objs[i]:get_name() == "Pylon Left Eye" then
+        left_eye = objs[i];
+    elseif objs[i]:get_name() == "Pylon Right Eye" then
+        right_eye = objs[i];
+    end;
+end;
+
+local ui = {};
+
+function health_fg_pos(value)
+    return screen_to_world(vec2(-1920, 1080))
+        + (vec2(health_bar_width, -health_bar_height) / 2)
+        + vec2(0.2,-0.2)
+        + (vec2(((value / 100.0) * health_bar_width) - health_bar_width, 0)) / 2;
+end;
+
+function health_bg_pos(value)
+    return screen_to_world(vec2(-1920, 1080))
+        + (vec2(health_bar_width, -health_bar_height) / 2)
+        + vec2(0.2,-0.2);
+end;
+
+function update_health_bar(value)
+    if health_bar_fg ~= nil and (not health_bar_fg:is_destroyed()) then
+        health_bar_fg:destroy();
+    end;
+    if health_bar_bg ~= nil and (not health_bar_bg:is_destroyed()) then
+        health_bar_bg:destroy();
+    end;
+    health_bar_bg = Scene:add_box({
+        position = health_bg_pos(value),
+        size = vec2(health_bar_width, health_bar_height),
+        color = 0x000000,
+        is_static = true,
+    });
+    health_bar_bg:temp_set_collides(false);
+    health_bar_fg = Scene:add_box({
+        position = health_fg_pos(value),
+        size = vec2((value / 100.0) * health_bar_width, health_bar_height),
+        color = 0xff9a52,
+        is_static = true,
+    });
+    health_bar_fg:temp_set_collides(false);
+
+    for i=1,10 do
+        Scene:add_attachment({
+            name = "Point Light",
+            component = {
+                name = "Point Light",
+                code = temp_load_string('./scripts/core/hinge.lua'),
+            },
+            parent = health_bar_fg,
+            local_position = vec2((((i - 0.5) / 10) * health_bar_width) - (health_bar_width / 2), 0),
+            local_angle = 0,
+            image = "hinge.png",
+            size = 1,
+            color = Color:rgba(0,0,0,0),
+            light = {
+                color = 0xff9a52,
+                intensity = 1,
+                radius = 0.3,
+            }
+        });
+    end;
+end;
+
+update_health_bar(100);
+
+function lerp_vec2(v1, v2, t)
+    return vec2(
+        v1.x + (v2.x - v1.x) * t,
+        v1.y + (v2.y - v1.y) * t
+    );
+end;
+
 local gizmos = {};
 
 function clear_gizmos()
@@ -53,6 +145,13 @@ function on_update()
         enabled = not enabled;
         self:set_angle_locked(enabled);
         if enabled then self:set_angle(0); end;
+
+        left_eye:detach();
+        right_eye:detach();
+        left_eye:temp_set_collides(false);
+        right_eye:temp_set_collides(false);
+        left_eye:temp_set_is_static(true);
+        right_eye:temp_set_is_static(true);
     end;
 
     if Input:key_just_pressed("Q") then
@@ -60,6 +159,12 @@ function on_update()
     end;
 
     if not enabled then return; end;
+
+    health_bar_fg:set_position(health_fg_pos(100));
+    health_bar_bg:set_position(health_bg_pos(100));
+
+    Scene:temp_set_camera_pos(camera_pos);
+    Scene:temp_set_camera_zoom(camera_zoom);
 
     local current_vel = self:get_linear_velocity();
     local update_vel = false;
@@ -118,6 +223,30 @@ function on_step()
         }, 0xff0000);
         gizmo_circle(self:get_position() + vec2(-0.46875 - 0.01, (-4 * (1 / 12) + 0.5)), 0xff0000);
         gizmo_circle(self:get_position() + vec2(0.46875 + 0.01, (-4 * (1 / 12) + 0.5)), 0xff0000);
+    end;
+
+    if enabled then
+        --local x_offset = 0;
+        --if Input:key_pressed("D") then
+
+        local self_pos = self:get_position();
+
+        camera_pos = lerp_vec2(camera_pos, self:get_position() + vec2(self:get_linear_velocity().x / 2, 0.8), 0.02);
+
+        health_bar_fg:set_position(health_fg_pos(100));
+        health_bar_bg:set_position(health_bg_pos(100));
+
+        Scene:temp_set_camera_pos(camera_pos);
+        Scene:temp_set_camera_zoom(camera_zoom);
+
+        local left_eye_pos = self_pos + vec2(-1.8 * 0.0625, (10 * 0.0625));
+        local right_eye_pos = self_pos + vec2(1.8 * 0.0625, (10 * 0.0625));
+
+        left_eye_pos = lerp_vec2(left_eye_pos, Input:pointer_pos(), 0.007);
+        right_eye_pos = lerp_vec2(right_eye_pos, Input:pointer_pos(), 0.007);
+
+        left_eye:set_position(left_eye_pos);
+        right_eye:set_position(right_eye_pos);
     end;
 end;
 

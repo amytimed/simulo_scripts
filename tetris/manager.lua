@@ -3,6 +3,15 @@ local height = 20;
 
 local pixels = {};
 
+local pixel_lights = {};
+
+function clear_lights()
+    for i=1,#pixel_lights do
+        pixel_lights[i]:destroy();
+    end;
+    pixel_lights = {};
+end;
+
 for y=1,height do
     for x=1,width do
         local px = Scene:add_box({
@@ -75,6 +84,26 @@ local colors = {
 function set_pixel(x, y, color)
     if x < width then
         pixels[1 + x + (width * y)].color = color;
+        if (color.r ~= colors[0].r) and (color.g ~= colors[0].g) and (color.b ~= colors[0].b) then
+            table.insert(pixel_lights, Scene:add_attachment({
+                name = "Point Light",
+                component = {
+                    name = "Point Light",
+                    code = temp_load_string('./scripts/core/hinge.lua'),
+                },
+                parent = pixels[1 + x + (width * y)],
+                local_position = vec2(0, 0),
+                local_angle = 0,
+                image = "hinge.png",
+                size = 1,
+                color = Color:rgba(0,0,0,0),
+                light = {
+                    color = color,
+                    intensity = 1.5,
+                    radius = 1,
+                }
+            }));
+        end;
     end;
 end;
 
@@ -163,6 +192,7 @@ local piece_x, piece_y = 3, 15
 local piece_color = colors[active_piece[1][1]]
 
 function game_update()
+    clear_lights();
     clear_piece(active_piece, piece_x, piece_y)
 
     piece_y = piece_y - 1
@@ -186,6 +216,7 @@ function game_update()
 end
 
 function game_keypressed(key)
+    clear_lights();
     clear_piece(active_piece, piece_x, piece_y)
 
     if key == "left" then

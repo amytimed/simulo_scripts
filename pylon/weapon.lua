@@ -265,5 +265,11 @@ function on_step()
 end;
 
 function on_destroy()
+    if beam_parts ~= nil then
+        for i=1,#beam_parts do
+            beam_parts[i]:destroy();
+        end;
+        beam_parts = nil;
+    end;
     clear_gizmos();
 end;
