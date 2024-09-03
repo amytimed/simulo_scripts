@@ -1,48 +1,39 @@
 local hp = 100;
 
-local left_eye = nil;
-local right_eye = nil;
+local weapon = nil;
 
-local enabled = false;
-local permanent_controller = false;
+local fire_cooldown = 5;
+local current_cooldown = 0;
 
 function on_event(id, data)
     if id == "damage" then
         if (data ~= nil) and (data.amount ~= nil) then
             hp -= data.amount;
-            update_health_bar(hp);
-            print('damaged, new hp is ' .. tostring(hp));
+            --update_health_bar(hp);
+            if hp <= 0 then
+                weapon:temp_set_collides(true);
+                for i=1,10 do
+                    Scene:add_circle({
+                        position = self:get_position() + vec2(0, 0.55),
+                        radius = 0.1,
+                        is_static = false,
+                        color = self.color
+                    });
+                end;
+                self:destroy();
+            end;
         end;
     elseif id == "@amy/pylon/objects" then
-        left_eye = Scene:get_object_by_guid(data.left_eye);
-        right_eye = Scene:get_object_by_guid(data.right_eye);
-    elseif id == "@amy/pylon/permanent_controller" then
-        enabled = true;
-        permanent_controller = true;
-
-        self:set_angle_locked(true);
-        self:set_angle(0);
-
-        left_eye:detach();
-        right_eye:detach();
-        left_eye:temp_set_collides(false);
-        right_eye:temp_set_collides(false);
-        left_eye:temp_set_is_static(true);
-        right_eye:temp_set_is_static(true);
+        weapon = Scene:get_object_by_guid(data.weapon);
     end;
 end;
 
-local speed = 4.1;
+local target = nil;
+
+local speed = 4;
 local jump_force = 5.1;
 
 local debug = false;
-
-local camera_pos = self:get_position() + vec2(0, 0.8);
-local camera_zoom = 0.02;
-
-function screen_to_world(pos)
-    return (pos / 216) + camera_pos;
-end;
 
 local health_bar_fg = nil;
 local health_bar_bg = nil;
@@ -69,8 +60,6 @@ function update_health_bar(value)
     if health_bar_bg ~= nil and (not health_bar_bg:is_destroyed()) then
         health_bar_bg:destroy();
     end;
-    health_bar_fg = nil;
-
     health_bar_bg = Scene:add_box({
         position = health_bg_pos(value),
         size = vec2(health_bar_width, health_bar_height),
@@ -78,46 +67,37 @@ function update_health_bar(value)
         is_static = true,
     });
     health_bar_bg:temp_set_collides(false);
-    if value > 0 then
-        health_bar_fg = Scene:add_box({
-            position = health_fg_pos(value),
-            size = vec2((value / 100.0) * health_bar_width, health_bar_height),
-            color = 0xff9a52,
-            is_static = true,
-        });
-        health_bar_fg:temp_set_collides(false);
+    health_bar_fg = Scene:add_box({
+        position = health_fg_pos(value),
+        size = vec2((value / 100.0) * health_bar_width, health_bar_height),
+        color = 0xff9a52,
+        is_static = true,
+    });
+    health_bar_fg:temp_set_collides(false);
 
-        for i=1,10 do
-            Scene:add_attachment({
+    for i=1,10 do
+        Scene:add_attachment({
+            name = "Point Light",
+            component = {
                 name = "Point Light",
-                component = {
-                    name = "Point Light",
-                    code = temp_load_string('./scripts/core/hinge.lua'),
-                },
-                parent = health_bar_fg,
-                local_position = vec2((((i - 0.5) / 10) * health_bar_width) - (health_bar_width / 2), 0),
-                local_angle = 0,
-                image = "embedded://textures/point_light.png",
-                size = 0.001,
-                color = Color:rgba(0,0,0,0),
-                light = {
-                    color = 0xff9a52,
-                    intensity = 1,
-                    radius = 0.3,
-                }
-            });
-        end;
+                code = temp_load_string('./scripts/core/hinge.lua'),
+            },
+            parent = health_bar_fg,
+            local_position = vec2((((i - 0.5) / 10) * health_bar_width) - (health_bar_width / 2), 0),
+            local_angle = 0,
+            image = "embedded://textures/point_light.png",
+            size = 0.001,
+            color = Color:rgba(0,0,0,0),
+            light = {
+                color = 0xff9a52,
+                intensity = 1,
+                radius = 0.3,
+            }
+        });
     end;
 end;
 
-update_health_bar(hp);
-
-function lerp_vec2(v1, v2, t)
-    return vec2(
-        v1.x + (v2.x - v1.x) * t,
-        v1.y + (v2.y - v1.y) * t
-    );
-end;
+--update_health_bar(hp);
 
 local gizmos = {};
 
@@ -163,72 +143,120 @@ function line(line_start,line_end,thickness,color,static)
 end;
 
 function on_update()
-    if Input:key_just_pressed("R") then
-        require('./scripts/@amy/pylon/main.lua');
-        return;
-    end;
-
-    if Input:key_just_pressed("X") then
-        if not permanent_controller then
-            enabled = not enabled;
-            self:set_angle_locked(enabled);
-            if enabled then self:set_angle(0); end;
-
-            left_eye:detach();
-            right_eye:detach();
-            left_eye:temp_set_collides(false);
-            right_eye:temp_set_collides(false);
-            left_eye:temp_set_is_static(true);
-            right_eye:temp_set_is_static(true);
-        end;
-    end;
+    self:set_angle_locked(hp > 0);
 
     if Input:key_just_pressed("Q") then
         debug = not debug;
     end;
 
-    if not enabled then return; end;
+    if hp <= 0 then return; end;
 
-    if health_bar_fg ~= nil then
-        health_bar_fg:set_position(health_fg_pos(100));
-    end;
-    health_bar_bg:set_position(health_bg_pos(100));
+    --health_bar_fg:set_position(health_fg_pos(100));
+    --health_bar_bg:set_position(health_bg_pos(100));
 
-    Scene:temp_set_camera_pos(camera_pos);
-    Scene:temp_set_camera_zoom(camera_zoom);
+    if target ~= nil then
+        local target_pos = target:get_position();
+        local self_pos = self:get_position();
 
-    local current_vel = self:get_linear_velocity();
-    local update_vel = false;
+        local current_vel = self:get_linear_velocity();
+        local update_vel = false;
 
-    if Input:key_pressed("D") then
-        if current_vel.x < speed then
-            current_vel.x = speed;
-            update_vel = true;
+        if target_pos.x > self_pos.x then
+            if current_vel.x < speed then
+                current_vel.x = speed;
+                update_vel = true;
+            end;
         end;
-    end;
-    if Input:key_pressed("A") then
-        if current_vel.x > -speed then
-            current_vel.x = -speed;
-            update_vel = true;
+        if target_pos.x < self_pos.x then
+            if current_vel.x > -speed then
+                current_vel.x = -speed;
+                update_vel = true;
+            end;
         end;
-    end;
 
-    local grounded = ground_check();
+        local grounded = ground_check();
 
-    if Input:key_pressed("W") and grounded then
-        if current_vel.y < jump_force then
-            current_vel.y = jump_force;
-            update_vel = true;
+        if (target_pos.y > self_pos.y) and grounded then
+            if current_vel.y < jump_force then
+                current_vel.y = jump_force;
+                update_vel = true;
+            end;
         end;
-    end;
 
-    if update_vel then
-        self:set_linear_velocity(current_vel);
+        if update_vel then
+            self:set_linear_velocity(current_vel);
+        end;
     end;
 end;
 
 function on_step()
     clear_gizmos();
+
+    target = nil;
+    local objs = Scene:get_objects_in_circle({
+        position = self:get_position(),
+        radius = 7,
+    });
+    for i=1,#objs do
+        if objs[i]:get_name() == "Pylon" then
+            target = objs[i];
+            break;
+        end;
+    end;
+
+    if (target ~= nil) and (hp > 0) then
+        local self_pos = weapon:get_position();
+
+        local world_position = target:get_position() + vec2(0, 0.55);
+        local angle = math.atan2(world_position.y - self_pos.y, world_position.x - self_pos.x);
+        
+        weapon:set_angle(angle);
+
+        if current_cooldown <= 0 then
+            current_cooldown = fire_cooldown;
+            local direction = vec2(math.cos(angle), math.sin(angle));
+
+            local origin = weapon:get_position() + (direction * (12.1 * 0.0625));
+
+            local circle = Scene:get_objects_in_circle({
+                position = origin,
+                radius = 0
+            });
+
+            if #circle == 0 then
+                local hits = Scene:raycast({
+                    origin = origin,
+                    direction = direction,
+                    distance = 10,
+                    closest_only = false,
+                });
+                gizmo_raycast({
+                    origin = origin,
+                    direction = direction,
+                    distance = 10,
+                    closest_only = false,
+                }, 0xff0000);
+
+                for i=1,#hits do
+                    if hits[i].object:get_name() == "Pylon" then
+                        hits[i].object:send_event("damage", {
+                            amount = 1
+                        });
+                    end;
+                end;
+            else
+                for i=1,#circle do
+                    if circle[i]:get_name() == "Pylon" then
+                        circle[i]:send_event("damage", {
+                            amount = 1
+                        });
+                    end;
+                end;
+            end;
+        else
+            current_cooldown -= 1;
+        end;
+    end;
 
     if debug then
         --[[for _, offset in ipairs(ground_check_points) do
@@ -264,10 +292,8 @@ function on_step()
 
         camera_pos = lerp_vec2(camera_pos, self:get_position() + vec2(self:get_linear_velocity().x / 2, 0.8), 0.02);
 
-        if health_bar_fg ~= nil then
-            health_bar_fg:set_position(health_fg_pos(hp));
-        end;
-        health_bar_bg:set_position(health_bg_pos(hp));
+        health_bar_fg:set_position(health_fg_pos(100));
+        health_bar_bg:set_position(health_bg_pos(100));
 
         Scene:temp_set_camera_pos(camera_pos);
         Scene:temp_set_camera_zoom(camera_zoom);

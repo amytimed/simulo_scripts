@@ -1,4 +1,4 @@
-local function spawn_pylon(spawn_offset, light)
+local function spawn_pylon(spawn_offset, light, permanent_controller)
     local pylon_main = Scene:add_polygon({
         points = {
             [1] = vec2(-1.4 * 0.0625, 1),
@@ -81,8 +81,8 @@ local function spawn_pylon(spawn_offset, light)
         parent = left_eye,
         local_position = vec2(0, 0),
         local_angle = 0,
-        image = "hinge.png",
-        size = 1,
+        image = "embedded://textures/point_light.png",
+        size = 0.001,
         color = Color:rgba(0,0,0,0),
         light = {
             color = Color:hex(0xff9a52),
@@ -100,8 +100,8 @@ local function spawn_pylon(spawn_offset, light)
         parent = left_eye,
         local_position = vec2(0, 0),
         local_angle = 0,
-        image = "hinge.png",
-        size = 1,
+        image = "embedded://textures/point_light.png",
+        size = 0.001,
         color = Color:rgba(0,0,0,0),
         light = {
             color = Color:hex(0xff9a52),
@@ -129,8 +129,8 @@ local function spawn_pylon(spawn_offset, light)
         parent = right_eye,
         local_position = vec2(0, 0),
         local_angle = 0,
-        image = "hinge.png",
-        size = 1,
+        image = "embedded://textures/point_light.png",
+        size = 0.001,
         color = Color:rgba(0,0,0,0),
         light = {
             color = Color:hex(0xff9a52),
@@ -148,8 +148,8 @@ local function spawn_pylon(spawn_offset, light)
         parent = right_eye,
         local_position = vec2(0, 0),
         local_angle = 0,
-        image = "hinge.png",
-        size = 1,
+        image = "embedded://textures/point_light.png",
+        size = 0.001,
         color = Color:rgba(0,0,0,0),
         light = {
             color = Color:hex(0xff9a52),
@@ -230,6 +230,15 @@ local function spawn_pylon(spawn_offset, light)
     });
 
     pylon_main:add_component(hash);
+    pylon_main:send_event("@amy/pylon/objects", {
+        left_eye = left_eye.guid,
+        right_eye = right_eye.guid,
+        weapon = weapon_2.guid,
+    });
+    if permanent_controller then
+        pylon_main:send_event("@amy/pylon/permanent_controller");
+        weapon_2:send_event("@amy/pylon/permanent_controller");
+    end;
 
     if light then 
         Scene:add_attachment({
@@ -241,8 +250,8 @@ local function spawn_pylon(spawn_offset, light)
             parent = pylon_main,
             local_position = vec2(0, 0),
             local_angle = 0,
-            image = "hinge.png",
-            size = 1,
+            image = "embedded://textures/point_light.png",
+            size = 0.001,
             color = Color:rgba(0,0,0,0),
             light = {
                 color = 0xffffff,

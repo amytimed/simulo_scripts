@@ -7,20 +7,37 @@ local beam_speed = 0.2;
 local point_at_mouse = false;
 
 local enabled = false;
+local permanent_controller = false;
+
+function on_event(id, data)
+    if id == "@amy/pylon/permanent_controller" then
+        point_at_mouse = true;
+        permanent_controller = true;
+        local objs = Scene:get_all_objects();
+        for i=1,#objs do
+            if objs[i]:get_name() == "pylon_weapon_1" then
+                objs[i]:temp_set_collides(false);
+            end;
+        end;
+        self:temp_set_collides(false);
+    end;
+end;
 
 function on_update()
     if Input:key_just_pressed("E") then
         enabled = not enabled;
     end;
     if Input:key_just_pressed("X") then
-        point_at_mouse = not point_at_mouse;
-        local objs = Scene:get_all_objects();
-        for i=1,#objs do
-            if objs[i]:get_name() == "pylon_weapon_1" then
-                objs[i]:temp_set_collides(not point_at_mouse);
+        if not permanent_controller then
+            point_at_mouse = not point_at_mouse;
+            local objs = Scene:get_all_objects();
+            for i=1,#objs do
+                if objs[i]:get_name() == "pylon_weapon_1" then
+                    objs[i]:temp_set_collides(not point_at_mouse);
+                end;
             end;
+            self:temp_set_collides(not point_at_mouse);
         end;
-        self:temp_set_collides(not point_at_mouse);
     end;
 
     if point_at_mouse then
@@ -147,8 +164,8 @@ function on_step()
                 parent = line,
                 local_position = vec2(0, 0),
                 local_angle = 0,
-                image = "hinge.png",
-                size = 1,
+                image = "embedded://textures/point_light.png",
+                size = 0.001,
                 color = Color:rgba(0,0,0,0),
                 light = {
                     color = Color:mix(beam_color, unbeam, i / segments),
@@ -157,7 +174,7 @@ function on_step()
                 }
             });
             if i % 5 == 0 then
-                    Scene:add_attachment({
+                Scene:add_attachment({
                     name = "Point Light",
                     component = {
                         name = "Point Light",
@@ -166,8 +183,8 @@ function on_step()
                     parent = line,
                     local_position = vec2(0, 0),
                     local_angle = 0,
-                    image = "hinge.png",
-                    size = 1,
+                    image = "embedded://textures/point_light.png",
+                    size = 0.001,
                     color = Color:rgba(0,0,0,0),
                     light = {
                         color = Color:mix(beam_color, unbeam, i / segments),
@@ -202,8 +219,8 @@ function on_step()
             parent = line,
             local_position = vec2(0, 0),
             local_angle = 0,
-            image = "hinge.png",
-            size = 1,
+            image = "embedded://textures/point_light.png",
+            size = 0.001,
             color = Color:rgba(0,0,0,0),
             light = {
                 color = Color:mix(beam_color, unbeam, i / segments),
@@ -213,20 +230,20 @@ function on_step()
         });
     end;]]
 
-    for i=1,#hits do
-        if not hits[i].object:temp_get_is_static() then
-            local lin_vel = hits[i].object:get_linear_velocity();
-            local ang_vel = hits[i].object:get_angular_velocity();
-            hits[i].object:detach();
-            hits[i].object:set_linear_velocity(lin_vel);
-            hits[i].object:set_angular_velocity(ang_vel);
+    local function hit_target(obj, point)
+        if not obj:temp_get_is_static() then
+            local lin_vel = obj:get_linear_velocity();
+            local ang_vel = obj:get_angular_velocity();
+            obj:detach();
+            obj:set_linear_velocity(lin_vel);
+            obj:set_angular_velocity(ang_vel);
 
-            local object_position = hits[i].object:get_position()
-            local hit_to_origin = object_position - origin
+            local object_position = obj:get_position();
+            local hit_to_origin = object_position - origin;
 
             -- Determine the perpendicular direction
-            local perp_direction = vec2(-direction.y, direction.x)  -- Perpendicular direction
-            local dot_product = vec2_dot(hit_to_origin, perp_direction)
+            local perp_direction = vec2(-direction.y, direction.x); -- Perpendicular direction
+            local dot_product = vec2_dot(hit_to_origin, perp_direction);
 
             -- Decide which direction to push based on the dot product
             local push_direction = perp_direction
@@ -234,11 +251,15 @@ function on_step()
                 push_direction = -perp_direction
             end
 
-            hits[i].object:apply_force_to_center(push_direction * 1)
+            obj:apply_force_to_center(push_direction * 1);
+
+            obj:send_event("damage", {
+                amount = 80
+            });
         end;
-        if hits[i].object:get_name() ~= "Simulo Planet" then
+        if obj:get_name() ~= "Simulo Planet" then
             --gizmo_circle(hits[i].point, Color:rgb(80,80,80), 0.01, "Light");
-            local c = gizmo_circle(hits[i].point, Color:hex(0xffffff), 0.03);
+            local c = gizmo_circle(point, Color:hex(0xffffff), 0.03);
             Scene:add_attachment({
                 name = "Point Light",
                 component = {
@@ -248,8 +269,8 @@ function on_step()
                 parent = c,
                 local_position = vec2(0, 0),
                 local_angle = 0,
-                image = "hinge.png",
-                size = 1,
+                image = "embedded://textures/point_light.png",
+                size = 0.001,
                 color = Color:rgba(0,0,0,0),
                 light = {
                     color = 0xffffff,
@@ -259,8 +280,18 @@ function on_step()
                 }
             });
         end;
-        --[[local away = hits[i].object:get_position() - hits[i].point;
-        hits[i].object:apply_force_to_center(away * 10);]]
+    end;
+
+    for i=1,#hits do
+        hit_target(hits[i].object, hits[i].point)
+    end;
+
+    local circle = Scene:get_objects_in_circle({
+        position = origin,
+        radius = 0
+    });
+    for i=1,#circle do
+        hit_target(circle[i], origin);
     end;
 end;
 

@@ -94,8 +94,8 @@ function set_pixel(x, y, color)
                 parent = pixels[1 + x + (width * y)],
                 local_position = vec2(0, 0),
                 local_angle = 0,
-                image = "hinge.png",
-                size = 1,
+                image = "embedded://textures/point_light.png",
+                size = 0.001,
                 color = Color:rgba(0,0,0,0),
                 light = {
                     color = color,

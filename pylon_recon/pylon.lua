@@ -21,7 +21,43 @@ local prev_line = nil;
 local ground_body = nil;
 local grab_marker = nil;
 
+local sprite = nil;
+local facing_left = false;
+
+function redraw_sprite()
+    if sprite ~= nil then
+        sprite:destroy();
+    end;
+
+    sprite = Scene:add_attachment({
+        name = "Image",
+        component = {
+            name = "Image",
+            code = temp_load_string('./scripts/core/hinge.lua'),
+        },
+        parent = self,
+        local_position = vec2(0, 0),
+        local_angle = 0,
+        image = "~/scripts/@amy/pylon_recon/cone.png",
+        size = 1 / 12,
+        color = Color:hex(0xffffff),
+        flip_x = facing_left,
+    });
+end;
+
+redraw_sprite();
+
 local debug = false;
+
+local camera_pos = self:get_position() + vec2(0, 0);
+local camera_zoom = 0.02;
+
+function lerp_vec2(v1, v2, t)
+    return vec2(
+        v1.x + (v2.x - v1.x) * t,
+        v1.y + (v2.y - v1.y) * t
+    );
+end;
 
 local gizmos = {};
 
@@ -423,18 +459,33 @@ function on_update()
     local current_vel = self:get_linear_velocity();
     local update_vel = false;
 
+    if Input:key_just_pressed("Q") then
+        debug = not debug;
+    end;
+
+    local prev_facing_left = facing_left;
+
     if Input:key_pressed("D") then
         if current_vel.x < speed then
             current_vel.x = speed;
             update_vel = true;
         end;
+        facing_left = false;
     end;
     if Input:key_pressed("A") then
         if current_vel.x > -speed then
             current_vel.x = -speed;
             update_vel = true;
         end;
+        facing_left = true;
     end;
+
+    if facing_left ~= prev_facing_left then
+        redraw_sprite();
+    end;
+
+    Scene:temp_set_camera_pos(camera_pos);
+    Scene:temp_set_camera_zoom(camera_zoom);
 
     local grounded = ground_check();
 
@@ -629,7 +680,7 @@ function on_step()
 
     local hp_value = tonumber(string.match(self:get_name(), "player_(%d+)"))
     if hp_value then
-        self.color = rgb_to_color(0, math.ceil((hp_value / 100.0) * 255), math.ceil((hp_value / 100.0) * 255));
+        --self.color = rgb_to_color(0, math.ceil((hp_value / 100.0) * 255), math.ceil((hp_value / 100.0) * 255));
         if hp_value <= 0 then
             if grenade_display ~= nil then
                 for _, data in ipairs(grenade_display) do
@@ -716,6 +767,11 @@ function on_step()
         gizmo_circle(self:get_position() + vec2((-5.5 * (1 / 12)) - 0.01, -4 * (1 / 12)), 0xff0000);
         gizmo_circle(self:get_position() + vec2((5.5 * (1 / 12)) + 0.01, -4 * (1 / 12)), 0xff0000);
     end;
+
+    camera_pos = lerp_vec2(camera_pos, self:get_position(), 0.08);
+
+    Scene:temp_set_camera_pos(camera_pos);
+    Scene:temp_set_camera_zoom(camera_zoom);
 end;
 
 function ground_check()

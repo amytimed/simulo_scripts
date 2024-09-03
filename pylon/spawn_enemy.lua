@@ -68,6 +68,10 @@ local function spawn_enemy(spawn_offset)
         name = "enemy_weapon_3"
     });
 
+    weapon_1:temp_set_collides(false);
+    weapon_2:temp_set_collides(false);
+    weapon_3:temp_set_collides(false);
+
     weapon_2:bolt_to(weapon_1);
     weapon_3:bolt_to(weapon_1);
 
@@ -82,6 +86,18 @@ local function spawn_enemy(spawn_offset)
 
     weapon_1:set_angle(-0.38945937156677246);
 
+    local hash = Scene:add_component({
+        name = "Enemy",
+        id = "@amy/pylon/enemy",
+        version = "0.1.0",
+        code = temp_load_string('./scripts/@amy/pylon/enemy.lua')
+    });
+
+    enemy_main:add_component(hash);
+    enemy_main:send_event("@amy/pylon/objects", {
+        weapon = weapon_2.guid,
+    });
+
     --[[Scene:add_attachment({
         name = "Point Light",
         component = {
@@ -91,8 +107,8 @@ local function spawn_enemy(spawn_offset)
         parent = enemy_main,
         local_position = vec2(0.5, 0),
         local_angle = 0,
-        image = "hinge.png",
-        size = 1,
+        image = "embedded://textures/point_light.png",
+        size = 0.001,
         color = Color:rgba(0,0,0,0),
         light = {
             color = 0xffffff,

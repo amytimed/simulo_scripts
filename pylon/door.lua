@@ -1,7 +1,7 @@
 local closed_y = -10 + (2 / 2);
 local open_y = closed_y + 1.9;
 
-local speed = 0.01;
+local speed = 0.1;
 local radius = 1;
 
 local open = false;

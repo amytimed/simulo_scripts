@@ -144,8 +144,8 @@ function spawn_light_box(pos)
         parent = light_box,
         local_position = vec2(0, 0),
         local_angle = 0,
-        image = "hinge.png",
-        size = 1,
+        image = "embedded://textures/point_light.png",
+        size = 0.001,
         color = Color:rgba(0,0,0,0),
         light = {
             color = 0xff7029,
@@ -163,8 +163,8 @@ function spawn_light_box(pos)
         parent = light_box,
         local_position = vec2(0, 0),
         local_angle = 0,
-        image = "hinge.png",
-        size = 1,
+        image = "embedded://textures/point_light.png",
+        size = 0.001,
         color = Color:rgba(0,0,0,0),
         light = {
             color = 0xff7029,
@@ -208,8 +208,8 @@ function spawn_indoors_light(pos, color)
         parent = light_circle,
         local_position = vec2(0, 0),
         local_angle = 0,
-        image = "hinge.png",
-        size = 1,
+        image = "embedded://textures/point_light.png",
+        size = 0.001,
         color = Color:rgba(0,0,0,0),
         light = {
             color = color,
@@ -227,8 +227,8 @@ function spawn_indoors_light(pos, color)
         parent = light_circle,
         local_position = vec2(0, 0),
         local_angle = 0,
-        image = "hinge.png",
-        size = 1,
+        image = "embedded://textures/point_light.png",
+        size = 0.001,
         color = Color:rgba(0,0,0,0),
         light = {
             color = color,
@@ -246,8 +246,8 @@ function spawn_indoors_light(pos, color)
         parent = light_circle,
         local_position = vec2(0, 0),
         local_angle = 0,
-        image = "hinge.png",
-        size = 1,
+        image = "embedded://textures/point_light.png",
+        size = 0.001,
         color = Color:rgba(0,0,0,0),
         light = {
             color = color,
@@ -264,8 +264,11 @@ spawn_indoors_light(vec2(10+12, -10+2+1.5));
 
 local spawn_pylon = require('./scripts/@amy/pylon/spawn.lua');
 
-spawn_pylon(vec2(0, 0), false);
+spawn_pylon(vec2(20, 0), false, true);
 
 local spawn_enemy = require('./scripts/@amy/pylon/spawn_enemy.lua');
 
 spawn_enemy(vec2(2, 0));
+spawn_enemy(vec2(0, 0));
+spawn_enemy(vec2(-2, 0));
+spawn_enemy(vec2(-3.1, 0));
